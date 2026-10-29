@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ladder Pages</title>
+<style>
+:root{--bg:#EEF2F5;--surface:#fff;--ink:#14233A;--muted:#56677D;--line:#CBD6E0;--acc:#0A6C74}
+@media (prefers-color-scheme:dark){:root{--bg:#0C1420;--surface:#131F31;--ink:#E4ECF4;--muted:#98A8BD;--line:#2A3B55;--acc:#3EC3CB}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:860px;margin:0 auto;padding:40px 16px}h1{margin:0 0 4px;font-size:2rem}p.lead{color:var(--muted);margin:0 0 28px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;text-align:center}
+.card h2{margin:0 0 6px;font-size:1.25rem}.card p{color:var(--muted);margin:0 0 14px;font-size:.95rem}
+.card img{width:200px;max-width:100%;height:auto;background:#fff;border-radius:8px;padding:6px}
+a.btn{display:inline-block;margin-top:14px;padding:8px 16px;border-radius:8px;background:var(--acc);color:#fff;text-decoration:none;font-weight:600}
+@media (prefers-color-scheme:dark){a.btn{color:#0C1420}}
+</style>
+</head>
+<body>
+<main>
+<h1>Ladder Pages</h1>
+<p class="lead">Two interactive study pages. Scan a QR code or tap Open.</p>
+<div class="grid">
+  <div class="card">
+    <h2>Ladder Labs</h2>
+    <p>Six live simulation labs across computer science, mechanical engineering and MIS.</p>
+    <img src="qr/ladder-labs.svg" alt="QR code for Ladder Labs">
+    <br><a class="btn" href="ladder-labs.html">Open Ladder Labs</a>
+  </div>
+  <div class="card">
+    <h2>Max-Tree Ladder</h2>
+    <p>Step-by-step study of the paper "Max-Tree Computation on GPUs".</p>
+    <img src="qr/max-tree-ladder.svg" alt="QR code for Max-Tree Ladder">
+    <br><a class="btn" href="max-tree-ladder.html">Open Max-Tree Ladder</a>
+  </div>
+</div>
+</main>
+</body>
+</html>

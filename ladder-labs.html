@@ -1,0 +1,1169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ladder Labs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a lab bench. Home shows three fields as shelves of lab cards; each lab is its own view with See / Try / Name bands. */
+:root {
+  --bg: #EEF2F5; --surface: #FFFFFF; --surface-2: #E3EAF0; --ink: #14233A; --muted: #56677D; --line: #CBD6E0;
+  --cs: #0A6C74; --cs-soft: #D3ECEC; --me: #A4561A; --me-soft: #F6E3D2; --mis: #5B4BB7; --mis-soft: #E6E2F8;
+  --ochre: #B06A12; --ochre-soft: #F6E6CF; --good: #23794A; --good-soft: #DCF1E4; --bad: #B3261E; --bad-soft: #F8E0DE;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+  --f-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --r: 10px; --acc: var(--cs); --acc-soft: var(--cs-soft);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0C1420; --surface: #131F31; --surface-2: #1A2940; --ink: #E4ECF4; --muted: #98A8BD; --line: #2A3B55;
+  --cs: #3EC3CB; --cs-soft: #123A45; --me: #E89A5C; --me-soft: #3B2414; --mis: #A99CF5; --mis-soft: #262046;
+  --ochre: #E4A54E; --ochre-soft: #3A2A14; --good: #5CC98C; --good-soft: #12331F; --bad: #F2867C; --bad-soft: #3C1916;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0C1420; --surface: #131F31; --surface-2: #1A2940; --ink: #E4ECF4; --muted: #98A8BD; --line: #2A3B55;
+  --cs: #3EC3CB; --cs-soft: #123A45; --me: #E89A5C; --me-soft: #3B2414; --mis: #A99CF5; --mis-soft: #262046;
+  --ochre: #E4A54E; --ochre-soft: #3A2A14; --good: #5CC98C; --good-soft: #12331F; --bad: #F2867C; --bad-soft: #3C1916;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 17px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 60px; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2.3rem, 6vw, 3.6rem); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: 1.9rem; font-weight: 800; }
+h3 { font-size: 1.12rem; font-weight: 700; }
+p { margin: 0; }
+code, .mono { font-family: var(--f-mono); font-size: .88em; }
+:focus-visible { outline: 3px solid var(--ochre); outline-offset: 2px; border-radius: 4px; }
+a { color: var(--acc); }
+.wrap { max-width: 1120px; margin: 0 auto; }
+.read { max-width: 70ch; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.stack > *, .lab > *, .two > *, .grid3 > * { min-width: 0; }
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: var(--bg); border-bottom: 1px solid var(--line);
+  margin-left: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.topbar .wrap { display: flex; align-items: center; gap: 12px; padding-block: 9px; flex-wrap: wrap; }
+.brand { font-family: var(--f-display); font-weight: 800; text-decoration: none; color: var(--ink); }
+.crumb { font-size: .9rem; color: var(--muted); }
+.crumb a { text-decoration: none; }
+.eyebrow { font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.lead { font-size: 1.15rem; color: var(--muted); max-width: 64ch; }
+.hero { padding-block: 40px 18px; display: flex; flex-direction: column; gap: 12px; }
+.method { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-block: 10px 6px; }
+.method div { border-top: 3px solid var(--ink); padding-top: 8px; }
+.method b { font-family: var(--f-display); display: block; font-size: 1.1rem; }
+.method p { color: var(--muted); font-size: .95rem; }
+@media (max-width: 680px) { .method { grid-template-columns: 1fr; } }
+.shelf { margin-top: 30px; }
+.shelf-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.shelf-head h2 { font-size: 1.6rem; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-family: var(--f-mono); font-size: .75rem; border-radius: 999px; padding: 2px 10px; font-weight: 600; }
+.pill.cs { background: var(--cs-soft); color: var(--cs); } .pill.me { background: var(--me-soft); color: var(--me); } .pill.mis { background: var(--mis-soft); color: var(--mis); }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 760px) { .cards { grid-template-columns: 1fr; } }
+.card { display: flex; gap: 14px; text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; transition: border-color .15s, transform .15s; }
+.card:hover { border-color: var(--acc); transform: translateY(-2px); }
+.card .glyph { flex: none; width: 74px; height: 74px; border-radius: 12px; display: grid; place-items: center; }
+.card .glyph svg { width: 60px; height: 60px; }
+.card .body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.card .meta { display: flex; gap: 8px; flex-wrap: wrap; }
+.tag { font-family: var(--f-mono); font-size: .72rem; border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; color: var(--muted); }
+.card p { color: var(--muted); font-size: .95rem; }
+.lab-head { padding-block: 30px 10px; display: flex; flex-direction: column; gap: 10px; }
+.goals { display: flex; flex-wrap: wrap; gap: 8px; }
+.goals span { font-size: .88rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px; }
+.band { margin-top: 26px; }
+.band-title { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.band-title .ph { font-family: var(--f-mono); font-size: .72rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--surface); background: var(--acc); border-radius: 4px; padding: 1px 8px; }
+.band-title .ph.try { background: var(--ochre); } .band-title .ph.name { background: var(--ink); }
+.band-title h3 { font-size: 1.2rem; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; }
+.lab { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 900px) { .lab { grid-template-columns: 1fr; } }
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .grid3 { grid-template-columns: 1fr; } }
+.fig svg { display: block; width: 100%; height: auto; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btn { font: inherit; font-size: .9rem; font-weight: 700; border-radius: 8px; padding: 6px 12px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); cursor: pointer; }
+.btn:hover { border-color: var(--acc); }
+.btn.primary { background: var(--acc); border-color: var(--acc); color: var(--surface); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; flex-wrap: wrap; }
+.seg button { font: inherit; font-size: .86rem; background: var(--surface); color: var(--ink); border: none; border-right: 1px solid var(--line); padding: 6px 11px; cursor: pointer; }
+.seg button:last-child { border-right: none; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); font-weight: 700; }
+.sl { display: grid; grid-template-columns: 7.5em minmax(0, 1fr) 4.2em; gap: 8px; align-items: center; font-size: .88rem; }
+.sl input { width: 100%; accent-color: var(--acc); }
+.sl output { font-family: var(--f-mono); font-size: .82rem; text-align: right; font-variant-numeric: tabular-nums; }
+.sliders { display: flex; flex-direction: column; gap: 4px; }
+select, input[type="number"], input[type="text"] { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 4px 8px; }
+.pos { font-family: var(--f-mono); font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.narr { background: var(--surface-2); border-radius: 8px; padding: 10px 12px; font-size: .95rem; min-height: 3em; }
+.narr b { font-family: var(--f-display); }
+.counters { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+.counter { background: var(--surface-2); border-radius: 8px; padding: 6px 10px; }
+.counter .k { font-size: .76rem; color: var(--muted); font-weight: 700; }
+.counter .v { font-family: var(--f-mono); font-weight: 600; font-size: 1.02rem; font-variant-numeric: tabular-nums; }
+.counter.good .v { color: var(--good); } .counter.bad .v { color: var(--bad); }
+.badge { display: inline-block; font-family: var(--f-mono); font-size: .76rem; font-weight: 700; border-radius: 999px; padding: 2px 10px; }
+.badge.good { background: var(--good-soft); color: var(--good); } .badge.bad { background: var(--bad-soft); color: var(--bad); } .badge.warn { background: var(--ochre-soft); color: var(--ochre); }
+.callout { border-left: 4px solid var(--ochre); background: var(--ochre-soft); padding: 12px 14px; border-radius: 0 8px 8px 0; }
+.callout b { font-family: var(--f-display); }
+.fb { border-radius: 8px; padding: 9px 12px; font-size: .95rem; }
+.fb.good { background: var(--good-soft); color: var(--good); } .fb.bad { background: var(--bad-soft); color: var(--bad); }
+.fb.hint { background: var(--ochre-soft); color: var(--ink); border-left: 4px solid var(--ochre); }
+.qcard { border: 2px solid var(--ochre); border-radius: var(--r); padding: 14px; background: var(--surface); display: flex; flex-direction: column; gap: 10px; }
+.qopts { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn.opt { font-weight: 400; text-align: left; }
+.btn.opt.right { background: var(--good-soft); border-color: var(--good); color: var(--good); font-weight: 700; }
+.btn.opt.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+.formula { font-family: var(--f-mono); font-size: .92rem; background: var(--surface-2); border-radius: 8px; padding: 8px 12px; overflow-x: auto; white-space: nowrap; }
+.terms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .terms { grid-template-columns: 1fr; } }
+.terms > div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.checklist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.checklist label { display: flex; gap: 8px; align-items: flex-start; }
+table.t { border-collapse: collapse; width: 100%; font-size: .9rem; }
+table.t th, table.t td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); }
+table.t th { font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+table.t td.n { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+table.t tr.top td { background: var(--ochre-soft); font-weight: 700; }
+.tablewrap { overflow-x: auto; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: .84rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 4px; border-radius: 2px; display: inline-block; }
+.tip { position: fixed; z-index: 30; pointer-events: none; background: var(--ink); color: var(--bg); font-size: .8rem; padding: 5px 9px; border-radius: 6px; max-width: 280px; white-space: pre-line; }
+svg .axis { fill: var(--muted); font: 11px var(--f-mono); }
+svg .axt { fill: var(--muted); font: 12px var(--f-body); }
+svg .gridl { stroke: var(--line); stroke-width: 1; }
+svg .zero { stroke: var(--muted); stroke-width: 1; }
+svg .cursor { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 4 3; }
+svg .endlab { font: 600 11px var(--f-mono); }
+svg .cell { stroke: var(--surface); stroke-width: 1; }
+svg .wall { fill: var(--ink); }
+svg .closed { fill: var(--cs-soft); }
+svg .front { fill: var(--ochre-soft); stroke: var(--ochre); stroke-width: 1.5; }
+svg .curc { fill: var(--ochre); }
+svg .path { fill: none; stroke: var(--cs); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+svg .sg { font: 700 12px var(--f-mono); text-anchor: middle; fill: var(--surface); }
+svg .bnode rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; }
+svg .bnode.hot rect { stroke: var(--ochre); stroke-width: 3; fill: var(--ochre-soft); }
+svg .bnode.split rect { stroke: var(--bad); stroke-width: 3; fill: var(--bad-soft); }
+svg .bnode.new rect { stroke: var(--good); stroke-width: 3; fill: var(--good-soft); }
+svg .bnode.found rect { stroke: var(--cs); stroke-width: 3; fill: var(--cs-soft); }
+svg .bkey { font: 600 13px var(--f-mono); text-anchor: middle; fill: var(--ink); }
+svg .bkey.newk { fill: var(--good); }
+svg .bsep { stroke: var(--line); }
+svg .bedge { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+svg .link { stroke-width: 9; stroke-linecap: round; }
+svg .joint { fill: var(--surface); stroke: var(--ink); stroke-width: 2.5; }
+svg .ground { fill: var(--muted); }
+svg .trace { fill: none; stroke: var(--me); stroke-width: 2; opacity: .55; }
+svg .ppt { fill: var(--me); stroke: var(--surface); stroke-width: 2; }
+svg .spring { fill: none; stroke: var(--ink); stroke-width: 2.5; stroke-linejoin: round; }
+svg .massb { fill: var(--me); }
+svg .stage rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; }
+svg .stage text { fill: var(--ink); }
+svg .flowo { stroke: var(--mis); stroke-width: 2; fill: none; }
+svg .flowg { stroke: var(--ochre); stroke-width: 2; fill: none; }
+svg .lbl { font: 600 12px var(--f-body); fill: var(--ink); }
+svg .lbls { font: 11px var(--f-mono); fill: var(--muted); }
+footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); font-size: .9rem; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .card { transition: none; } .card:hover { transform: none; } }
+</style>
+
+<header class="topbar"><div class="wrap"><a class="brand" href="#home">Ladder Labs</a><span class="crumb" id="crumb"></span></div></header>
+
+<main class="wrap">
+<!-- ================= HOME ================= -->
+<section id="v-home" data-view="home">
+  <div class="hero">
+    <span class="eyebrow">Demo collection · Paper Ladder method</span>
+    <h1>Ladder Labs</h1>
+    <p class="lead">Six sample labs, two each for computer science, mechanical engineering and management information systems. Every lab runs a real simulation you can step through, then asks you to predict and compute, then names the formulas.</p>
+  </div>
+  <div class="method">
+    <div><b>See it</b><p>A live simulation with Play, Step and sliders. Change one thing and watch what moves.</p></div>
+    <div><b>Try it</b><p>Questions generated from the simulation. A wrong answer gets a hint; a second one shows the answer and why.</p></div>
+    <div><b>Name it</b><p>The formulas, terms and rules of thumb, tied to what you just watched.</p></div>
+  </div>
+  <div class="shelf"><div class="shelf-head"><span class="pill cs">CS</span><h2>Computer science</h2></div><div class="cards" id="shelf-cs"></div></div>
+  <div class="shelf"><div class="shelf-head"><span class="pill me">ME</span><h2>Mechanical engineering</h2></div><div class="cards" id="shelf-me"></div></div>
+  <div class="shelf"><div class="shelf-head"><span class="pill mis">MIS</span><h2>Management information systems</h2></div><div class="cards" id="shelf-mis"></div></div>
+  <footer>Every simulation runs live in the page and was checked before publishing. A* and Dijkstra always found the shortest path on 300 random mazes. The B-tree kept every invariant over 12,000 random inserts. The linkage closes its vector loop to within 10⁻⁹. The vibration integrator matches the exact solution to within 10⁻¹⁰. The inventory model's EOQ minimises its cost curve. The bullwhip model amplifies variance upstream, and information sharing reduces it.</footer>
+</section>
+
+<!-- ================= A* ================= -->
+<section id="v-astar" data-view="astar" data-track="cs" hidden>
+  <div class="lab-head">
+    <div class="goals"><span class="pill cs">CS · algorithms</span><span>~25 min</span><span>semi-hard</span></div>
+    <h1>Pathfinding: Dijkstra, A* and weighted A*</h1>
+    <p class="lead">Three versions of one algorithm. Each keeps a priority queue of frontier cells and always expands the one with the smallest key. The only difference is the key: g alone, g + h, or g + w·h. Watch how much of the grid each one explores.</p>
+  </div>
+  <div class="band"><div class="band-title"><span class="ph">See</span><h3>Search a maze step by step</h3></div>
+    <div class="lab">
+      <div class="panel stack">
+        <div class="controls"><span class="seg" role="group" aria-label="Algorithm" id="asMode"><button type="button" data-v="0" aria-pressed="false">Dijkstra (w = 0)</button><button type="button" data-v="1" aria-pressed="true">A* (w = 1)</button><button type="button" data-v="2.5" aria-pressed="false">Weighted A* (w = 2.5)</button></span>
+          <span class="seg" role="group" aria-label="Maze" id="asMaze"><button type="button" data-v="rooms" aria-pressed="true">Rooms</button><button type="button" data-v="random" aria-pressed="false">Random</button><button type="button" data-v="open" aria-pressed="false">Open field</button></span></div>
+        <div class="fig" id="asFig"></div>
+        <div class="narr" id="asNarr"></div>
+        <div class="controls" id="asCtl"></div>
+        <p class="note" style="font-size:.85rem;color:var(--muted)">Click any cell to add or remove a wall; the search restarts. Hover a cell to see its g, h and f.</p>
+      </div>
+      <div class="stack">
+        <div class="counters" id="asCount"></div>
+        <div class="panel"><h3 style="margin-bottom:6px">Priority queue (best first)</h3><div class="tablewrap"><table class="t" id="asPQ"></table></div></div>
+        <div class="panel"><h3 style="margin-bottom:6px">Same maze, all three</h3><div class="tablewrap"><table class="t" id="asCmp"></table></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="band"><div class="band-title"><span class="ph try">Try</span><h3>Predict the search</h3></div><div class="stack" id="asQs"></div></div>
+  <div class="band"><div class="band-title"><span class="ph name">Name</span><h3>The terms</h3></div>
+    <div class="terms">
+      <div><b>Priority key</b><div class="formula">f(n) = g(n) + w · h(n)</div><p>g = cost so far from the start. h = estimated cost to the goal (here Manhattan distance). w = 0 gives Dijkstra, w = 1 gives A*.</p></div>
+      <div><b>Admissible heuristic</b><p>h never overestimates the true remaining cost. Manhattan distance is admissible on a 4-connected grid with unit steps, so A* returns a shortest path.</p></div>
+      <div><b>Weighted A*</b><p>With w &gt; 1 the search trusts h more, expands fewer cells, and finds a path at most w times the optimal cost (bounded suboptimal).</p></div>
+      <div><b>Cost</b><p>Each cell is expanded at most once; with a binary heap the work is O(E log V). A good heuristic does not change the worst case, but it shrinks the explored area a lot in practice.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= B-TREE ================= -->
+<section id="v-btree" data-view="btree" data-track="cs" hidden>
+  <div class="lab-head">
+    <div class="goals"><span class="pill cs">CS · data structures</span><span>~25 min</span><span>semi-hard</span></div>
+    <h1>B-tree index: insertions and node splits</h1>
+    <p class="lead">Databases store indexes as B-trees because every node is one disk page and the tree stays shallow. Here a node holds at most 3 keys (order 4). When a 4th key arrives, the node splits and its middle key moves up. That is the only way the tree grows taller, so all leaves always stay at the same depth.</p>
+  </div>
+  <div class="band"><div class="band-title"><span class="ph">See</span><h3>Insert keys one event at a time</h3></div>
+    <div class="lab">
+      <div class="panel stack">
+        <div class="controls"><span class="seg" role="group" aria-label="Key sequence" id="btSeq"><button type="button" data-v="preset" aria-pressed="true">Textbook sequence</button><button type="button" data-v="sorted" aria-pressed="false">Sorted 1…16</button><button type="button" data-v="random" aria-pressed="false">Random</button></span>
+          <label for="btKey" style="font-size:.88rem">Add key</label><input type="number" id="btKey" min="1" max="999" style="width:80px"><button class="btn" type="button" id="btAdd">Insert</button></div>
+        <div class="fig" id="btFig"></div>
+        <div class="narr" id="btNarr"></div>
+        <div class="controls" id="btCtl"></div>
+      </div>
+      <div class="stack">
+        <div class="counters" id="btCount"></div>
+        <div class="panel stack"><h3>Search the final tree</h3><div class="controls"><input type="number" id="btFind" min="1" max="999" style="width:90px" aria-label="Key to search"><button class="btn" type="button" id="btGo">Search</button></div><div id="btFound" class="narr"></div></div>
+        <div class="panel stack"><h3>Why databases love it</h3>
+          <div class="sliders"><div class="sl"><label for="btN">Rows</label><input type="range" id="btN" min="3" max="10" step="1" value="6"><output id="btNo"></output></div>
+          <div class="sl"><label for="btM">Keys per page</label><input type="range" id="btM" min="4" max="500" step="1" value="200"><output id="btMo"></output></div></div>
+          <p id="btScale" style="font-size:.95rem"></p></div>
+      </div>
+    </div>
+  </div>
+  <div class="band"><div class="band-title"><span class="ph try">Try</span><h3>Predict the next insertion</h3></div>
+    <div class="panel stack"><div class="controls"><button class="btn" type="button" id="btqNew">New tree</button><span class="pos" id="btqScore"></span></div><div class="fig" id="btqFig"></div><div id="btqCard"></div></div>
+  </div>
+  <div class="band"><div class="band-title"><span class="ph name">Name</span><h3>The rules</h3>
+  </div>
+    <div class="terms">
+      <div><b>Order m</b><p>Each node has at most m children and m − 1 keys. Here m = 4. Every node except the root has at least ⌈m/2⌉ − 1 keys (here 1).</p></div>
+      <div><b>Split</b><p>An overflowing node (m keys) splits into two halves; the median key moves up into the parent. If the root splits, a new root appears: the tree grows from the top.</p></div>
+      <div><b>Height</b><div class="formula">height ≈ ⌈log_m(N)⌉</div><p>With 200 keys per page, a billion rows need about 4 page reads.</p></div>
+      <div><b>MIS link</b><p>This is how a relational database finds a customer by ID without scanning the table. Index design (which columns get a B-tree) is a core database-administration decision.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOUR-BAR ================= -->
+<section id="v-linkage" data-view="linkage" data-track="me" hidden>
+  <div class="lab-head">
+    <div class="goals"><span class="pill me">ME · mechanisms</span><span>~25 min</span><span>semi-hard</span></div>
+    <h1>Four-bar linkage: Grashof, motion and coupler curves</h1>
+    <p class="lead">Four rigid links joined in a loop. Turn the input crank and every other position follows from one vector equation. Link lengths decide everything: whether the crank can turn fully, how far the output swings, and whether a point on the coupler draws an almost straight line.</p>
+  </div>
+  <div class="band"><div class="band-title"><span class="ph">See</span><h3>Drive the crank</h3></div>
+    <div class="lab">
+      <div class="panel stack">
+        <div class="controls"><span class="seg" role="group" aria-label="Preset" id="fbPreset"><button type="button" data-v="cr" aria-pressed="true">Crank-rocker</button><button type="button" data-v="dc" aria-pressed="false">Drag link</button><button type="button" data-v="dr" aria-pressed="false">Double rocker</button><button type="button" data-v="hk" aria-pressed="false">Hoekens straight line</button></span></div>
+        <div class="fig" id="fbFig"></div>
+        <div class="controls"><button class="btn primary" type="button" id="fbPlay">Pause</button><div class="sl" style="flex:1;min-width:220px"><label for="fbT">Crank angle θ₂</label><input type="range" id="fbT" min="0" max="360" value="40"><output id="fbTo"></output></div></div>
+        <div class="sliders" id="fbSl"></div>
+      </div>
+      <div class="stack">
+        <div class="panel stack"><h3 id="fbType"></h3><p id="fbGr" style="font-size:.95rem"></p></div>
+        <div class="counters" id="fbCount"></div>
+        <div class="panel"><div class="fig" id="fbPlot"></div><div class="legend"><span><i style="background:var(--s1)"></i>output angle θ₄</span><span><i style="background:var(--s2)"></i>transmission angle μ</span><span><i style="background:var(--good);opacity:.4"></i>good μ band 40°–140°</span></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="band"><div class="band-title"><span class="ph try">Try</span><h3>Classify and judge</h3></div><div class="stack" id="fbQs"></div></div>
+  <div class="band"><div class="band-title"><span class="ph name">Name</span><h3>The equations</h3></div>
+    <div class="terms">
+      <div><b>Vector loop</b><div class="formula">a·e^{iθ₂} + b·e^{iθ₃} = d + c·e^{iθ₄}</div><p>Two scalar equations, two unknowns (θ₃, θ₄). Geometrically: B is where the circle of radius b around A meets the circle of radius c around O₄. Two intersections = two assembly branches (open and crossed).</p></div>
+      <div><b>Grashof's law</b><div class="formula">s + l ≤ p + q</div><p>s = shortest, l = longest link. If true, at least one link turns fully. Which one depends on where the shortest link sits: as the crank it gives a crank-rocker, as the ground a drag link, as the coupler a double rocker.</p></div>
+      <div><b>Transmission angle μ</b><p>The angle between coupler and rocker. Near 0° or 180° the coupler pushes almost along the rocker and force transmission is poor; designers keep μ roughly between 40° and 140°.</p></div>
+      <div><b>Coupler curves</b><p>Points on the coupler trace closed curves of surprising shapes. The Hoekens proportions (2 : 1 : 2.5 : 2.5, point at 5) give a near-straight segment, used in walking machines.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= VIBRATION ================= -->
+<section id="v-vibration" data-view="vibration" data-track="me" hidden>
+  <div class="lab-head">
+    <div class="goals"><span class="pill me">ME · dynamics</span><span>~25 min</span><span>semi-hard</span></div>
+    <h1>Vibration: damping and resonance</h1>
+    <p class="lead">A mass on a spring with a damper, pushed by a force F₀·cos(ωt). Three numbers, m, k and c, decide how it rings, how fast it settles, and how violently it answers when ω gets close to its natural frequency.</p>
+  </div>
+  <div class="band"><div class="band-title"><span class="ph">See</span><h3>Shake it</h3></div>
+    <div class="lab">
+      <div class="panel stack">
+        <div class="controls"><span class="seg" role="group" aria-label="Case" id="viCase"><button type="button" data-v="free" aria-pressed="false">Free vibration</button><button type="button" data-v="forced" aria-pressed="true">Forced</button><button type="button" data-v="res" aria-pressed="false">At resonance</button></span><button class="btn primary" type="button" id="viPlay">Pause</button></div>
+        <div class="two"><div class="fig" id="viAnim"></div><div class="fig" id="viFR"></div></div>
+        <div class="fig" id="viPlot"></div>
+        <div class="sliders" id="viSl"></div>
+      </div>
+      <div class="stack">
+        <div class="panel stack"><h3 id="viReg"></h3><p id="viTxt" style="font-size:.95rem"></p></div>
+        <div class="counters" id="viCount"></div>
+      </div>
+    </div>
+  </div>
+  <div class="band"><div class="band-title"><span class="ph try">Try</span><h3>Compute and predict</h3></div><div class="stack" id="viQs"></div></div>
+  <div class="band"><div class="band-title"><span class="ph name">Name</span><h3>The equations</h3></div>
+    <div class="terms">
+      <div><b>Equation of motion</b><div class="formula">m·x″ + c·x′ + k·x = F₀·cos(ωt)</div><p>Solved here numerically with 4th-order Runge–Kutta (step 2 ms).</p></div>
+      <div><b>Natural frequency and damping ratio</b><div class="formula">ωₙ = √(k/m) · ζ = c / (2√(km))</div><p>ζ &lt; 1 underdamped (rings), ζ = 1 critically damped (fastest return, no overshoot), ζ &gt; 1 overdamped.</p></div>
+      <div><b>Magnification factor</b><div class="formula">X/(F₀/k) = 1 / √((1 − r²)² + (2ζr)²), r = ω/ωₙ</div><p>Peaks near r = 1. With light damping the peak is about 1/(2ζ).</p></div>
+      <div><b>Phase</b><div class="formula">φ = atan2(2ζr, 1 − r²)</div><p>Below resonance the mass follows the force; at r = 1 it lags 90°; far above it moves opposite to the force.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= INVENTORY ================= -->
+<section id="v-inventory" data-view="inventory" data-track="mis" hidden>
+  <div class="lab-head">
+    <div class="goals"><span class="pill mis">MIS · decision support</span><span>~25 min</span><span>semi-hard</span></div>
+    <h1>Inventory policy: EOQ, reorder point and service level</h1>
+    <p class="lead">The reorder rules inside every ERP system. Order Q units whenever the inventory position drops to the reorder point s. EOQ balances ordering cost against holding cost; safety stock protects against uncertain demand during the lead time. Run a year of random demand and see whether the textbook promise holds.</p>
+  </div>
+  <div class="band"><div class="band-title"><span class="ph">See</span><h3>Simulate a year</h3></div>
+    <div class="lab">
+      <div class="panel stack">
+        <div class="fig" id="ivPlot"></div>
+        <div class="legend"><span><i style="background:var(--s1)"></i>on hand</span><span><i style="background:var(--bad)"></i>backorders</span><span><i style="background:var(--mis)"></i>reorder point s</span><span><i style="background:var(--ochre)"></i>order placed</span></div>
+        <div class="controls" id="ivCtl"></div>
+        <div class="two"><div class="sliders" id="ivSl1"></div><div class="sliders" id="ivSl2"></div></div>
+        <div class="controls"><label for="ivZ" style="font-size:.88rem">Service target</label><select id="ivZ"><option value="1.0">84% (z = 1.00)</option><option value="1.28">90% (z = 1.28)</option><option value="1.65" selected>95% (z = 1.65)</option><option value="2.33">99% (z = 2.33)</option></select>
+          <label style="font-size:.88rem"><input type="checkbox" id="ivU"> correct for daily review (undershoot)</label><button class="btn" type="button" id="ivReset">Use EOQ and ROP</button><button class="btn" type="button" id="ivSeed">New random year</button></div>
+      </div>
+      <div class="stack">
+        <div class="counters" id="ivCount"></div>
+        <div class="panel"><div class="fig" id="ivTC"></div></div>
+        <div class="callout" id="ivNote"></div>
+      </div>
+    </div>
+  </div>
+  <div class="band"><div class="band-title"><span class="ph try">Try</span><h3>Compute the policy</h3></div><div class="stack" id="ivQs"></div></div>
+  <div class="band"><div class="band-title"><span class="ph name">Name</span><h3>The formulas</h3></div>
+    <div class="terms">
+      <div><b>Economic order quantity</b><div class="formula">EOQ = √(2·D·S / H)</div><p>D = annual demand, S = cost per order, H = holding cost per unit per year. At EOQ, yearly ordering cost equals yearly holding cost.</p></div>
+      <div><b>Reorder point</b><div class="formula">s = μ·L + z·σ·√L</div><p>Expected demand during the lead time plus safety stock. z sets the cycle service level: the chance a replenishment cycle ends without a stockout.</p></div>
+      <div><b>Undershoot</b><div class="formula">E[undershoot] ≈ (μ² + σ²) / (2μ)</div><p>With daily review, inventory drops past s before you notice, so the effective safety stock is smaller. The formula above assumes continuous review.</p></div>
+      <div><b>Fill rate vs cycle service</b><p>Fill rate counts units served from stock; cycle service counts cycles without any shortage. A 95% cycle service usually means a fill rate above 99%.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= BULLWHIP ================= -->
+<section id="v-bullwhip" data-view="bullwhip" data-track="mis" hidden>
+  <div class="lab-head">
+    <div class="goals"><span class="pill mis">MIS · supply chain information</span><span>~25 min</span><span>semi-hard</span></div>
+    <h1>The bullwhip effect: why information sharing matters</h1>
+    <p class="lead">Four companies in a chain: retailer, wholesaler, distributor, factory. Each one forecasts from the orders it receives and orders to cover its lead time. A small change in customer demand grows into wild swings upstream. Turn on information sharing, where everyone sees the retailer's point-of-sale data, and watch the swings shrink.</p>
+  </div>
+  <div class="band"><div class="band-title"><span class="ph">See</span><h3>Play the season week by week</h3></div>
+    <div class="lab">
+      <div class="panel stack">
+        <div class="fig" id="bwChain"></div>
+        <div class="fig" id="bwPlot"></div>
+        <div class="legend" id="bwLeg"></div>
+        <div class="controls" id="bwCtl"></div>
+        <div class="two"><div class="sliders" id="bwSl1"></div><div class="stack"><label style="font-size:.95rem"><input type="checkbox" id="bwShare"> <b>Share point-of-sale data</b> with every stage</label><button class="btn" type="button" id="bwSeed" style="align-self:flex-start">New random season</button></div></div>
+      </div>
+      <div class="stack">
+        <div class="panel"><h3 style="margin-bottom:6px">Order variance ÷ customer demand variance</h3><div class="fig" id="bwBars"></div><p style="font-size:.85rem;color:var(--muted)">Bars: this simulation. Ticks: Chen et al. (2000) formula, which assumes orders may go negative; here they cannot, which caps the upstream values.</p></div>
+        <div class="counters" id="bwCount"></div>
+      </div>
+    </div>
+  </div>
+  <div class="band"><div class="band-title"><span class="ph try">Try</span><h3>Predict the chain</h3></div><div class="stack" id="bwQs"></div></div>
+  <div class="band"><div class="band-title"><span class="ph name">Name</span><h3>Causes and cures</h3></div>
+    <div class="terms">
+      <div><b>Four causes</b><p>Lee, Padmanabhan &amp; Whang (1997): demand-signal processing (forecasting from orders, shown here), order batching, rationing and shortage gaming, and price fluctuations.</p></div>
+      <div><b>One stage, moving-average forecast</b><div class="formula">Var(q)/Var(D) ≥ 1 + 2L/N + 2L²/N²</div><p>L = lead time + one review period, N = weeks in the moving average. Longer lead times or shorter memory amplify more.</p></div>
+      <div><b>Whole chain</b><div class="formula">no sharing: Π (1 + 2Lᵢ/N + 2Lᵢ²/N²)</div><div class="formula">sharing: 1 + 2ΣLᵢ/N + 2(ΣLᵢ)²/N²</div><p>Without shared data the factors multiply; with shared data the lead times add. Sharing reduces the effect but does not remove it.</p></div>
+      <div><b>MIS cures</b><p>Point-of-sale data sharing, EDI, vendor-managed inventory (VMI), collaborative planning (CPFR), and shorter lead times. These are information-system decisions with direct cost effects.</p></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<script>
+// Ladder Labs engines: pure functions, tested in node (tests.js) and inlined in the page.
+
+function rngSeed(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function gauss(r) { let u = 0, v = 0; while (u === 0) u = r(); while (v === 0) v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+
+/* ================= CS 1: grid search (Dijkstra / A* / weighted A*) ================= */
+function gridSearch(W, H, walls, start, goal, w) {
+  const N = W * H, g = new Array(N).fill(Infinity), par = new Array(N).fill(-1), closed = new Uint8Array(N);
+  const hx = goal % W, hy = (goal / W) | 0, h = p => Math.abs((p % W) - hx) + Math.abs(((p / W) | 0) - hy);
+  const heap = []; let seq = 0;
+  const less = (a, b) => a.f !== b.f ? a.f < b.f : (w > 0 && a.h !== b.h ? a.h < b.h : a.s < b.s);
+  const push = it => { heap.push(it); let i = heap.length - 1; while (i > 0) { const q = (i - 1) >> 1; if (less(heap[i], heap[q])) { [heap[i], heap[q]] = [heap[q], heap[i]]; i = q; } else break; } };
+  const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let i = 0; for (;;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < heap.length && less(heap[l], heap[m])) m = l; if (r < heap.length && less(heap[r], heap[m])) m = r; if (m === i) break; [heap[i], heap[m]] = [heap[m], heap[i]]; i = m; } } return top; };
+  g[start] = 0; push({ p: start, g: 0, h: h(start), f: w * h(start), s: seq++ });
+  const steps = [];
+  while (heap.length) {
+    const it = pop();
+    if (closed[it.p] || it.g > g[it.p]) continue;
+    closed[it.p] = 1;
+    const x = it.p % W, y = (it.p / W) | 0, added = [];
+    if (it.p !== goal) for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+      const q = ny * W + nx; if (walls.has(q) || closed[q]) continue;
+      const ng = it.g + 1;
+      if (ng < g[q]) { g[q] = ng; par[q] = it.p; push({ p: q, g: ng, h: h(q), f: ng + w * h(q), s: seq++ }); added.push(q); }
+    }
+    const frontier = heap.filter(e => !closed[e.p] && e.g === g[e.p]).sort((a, b) => less(a, b) ? -1 : 1);
+    steps.push({ cur: it.p, cg: it.g, ch: h(it.p), cf: it.f, added, frontier: frontier.map(e => ({ p: e.p, g: e.g, h: e.h, f: e.f })) });
+    if (it.p === goal) break;
+  }
+  let path = []; if (g[goal] < Infinity) { for (let p = goal; p !== -1; p = par[p]) path.push(p); path.reverse(); }
+  return { steps, path, cost: g[goal], expanded: steps.length, h };
+}
+function bfsCost(W, H, walls, s, t) {
+  const d = new Array(W * H).fill(-1), q = [s]; d[s] = 0;
+  while (q.length) { const p = q.shift(); if (p === t) return d[p]; const x = p % W, y = (p / W) | 0; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue; const n = ny * W + nx; if (walls.has(n) || d[n] >= 0) continue; d[n] = d[p] + 1; q.push(n); } }
+  return Infinity;
+}
+
+/* ================= CS 2: B-tree (max 3 keys per node, order 4) ================= */
+function BTree(maxKeys) {
+  const MAX = maxKeys || 3; let nid = 0;
+  const mk = (keys, kids) => ({ id: nid++, keys: keys || [], kids: kids || [] });
+  let root = mk();
+  const clone = n => ({ id: n.id, keys: n.keys.slice(), kids: n.kids.map(clone) });
+  function insert(k) {
+    const ev = [];
+    // descend
+    const path = []; let n = root;
+    for (;;) {
+      path.push(n);
+      if (n.keys.includes(k)) { ev.push({ type: 'exists', node: n.id, tree: clone(root) }); return ev; }
+      if (!n.kids.length) break;
+      let i = 0; while (i < n.keys.length && k > n.keys[i]) i++;
+      ev.push({ type: 'visit', node: n.id, child: i, tree: clone(root) });
+      n = n.kids[i];
+    }
+    let i = 0; while (i < n.keys.length && k > n.keys[i]) i++;
+    n.keys.splice(i, 0, k);
+    ev.push({ type: 'insert', node: n.id, key: k, over: n.keys.length > MAX, tree: clone(root) });
+    // split upward
+    let d = path.length - 1;
+    while (n.keys.length > MAX) {
+      const mid = Math.floor(n.keys.length / 2), med = n.keys[mid];
+      const L = mk(n.keys.slice(0, mid), n.kids.slice(0, mid + 1)), R = mk(n.keys.slice(mid + 1), n.kids.slice(mid + 1));
+      if (d === 0) { root = mk([med], [L, R]); ev.push({ type: 'split', node: n.id, median: med, left: L.id, right: R.id, newRoot: true, parent: root.id, tree: clone(root) }); break; }
+      const p = path[d - 1], ci = p.kids.indexOf(n);
+      p.kids.splice(ci, 1, L, R); p.keys.splice(ci, 0, med);
+      ev.push({ type: 'split', node: n.id, median: med, left: L.id, right: R.id, parent: p.id, tree: clone(root) });
+      n = p; d--;
+    }
+    ev.push({ type: 'done', tree: clone(root) });
+    return ev;
+  }
+  function search(k) { const vis = []; let n = root; for (;;) { vis.push(n.id); if (n.keys.includes(k)) return { found: true, vis }; if (!n.kids.length) return { found: false, vis }; let i = 0; while (i < n.keys.length && k > n.keys[i]) i++; n = n.kids[i]; } }
+  function check() {
+    const keys = []; let leafDepth = -1, ok = true;
+    (function walk(n, d, lo, hi) {
+      if (n !== root && n.keys.length < 1) ok = false;
+      if (n.keys.length > MAX) ok = false;
+      for (let i = 1; i < n.keys.length; i++) if (n.keys[i - 1] >= n.keys[i]) ok = false;
+      for (const k of n.keys) if (k <= lo || k >= hi) ok = false;
+      if (!n.kids.length) { if (leafDepth < 0) leafDepth = d; else if (leafDepth !== d) ok = false; keys.push(...n.keys); return; }
+      if (n.kids.length !== n.keys.length + 1) ok = false;
+      n.kids.forEach((c, i) => { walk(c, d + 1, i ? n.keys[i - 1] : lo, i < n.keys.length ? n.keys[i] : hi); if (i < n.keys.length) keys.push(n.keys[i]); });
+    })(root, 0, -Infinity, Infinity);
+    return { ok, keys, height: leafDepth + 1 };
+  }
+  return { insert, search, check, get root() { return root; }, clone: () => clone(root) };
+}
+
+/* ================= Mechanical 1: four-bar linkage ================= */
+// d ground (O2 at 0,0; O4 at d,0), a crank, b coupler, c rocker; coupler point at distance p from A, angle delta (rad) from AB
+function fourBarAt(L, t2, prevB) {
+  const { a, b, c, d } = L;
+  const A = [a * Math.cos(t2), a * Math.sin(t2)], O4 = [d, 0];
+  const dx = O4[0] - A[0], dy = O4[1] - A[1], e = Math.hypot(dx, dy);
+  if (e > b + c || e < Math.abs(b - c) || e === 0) return null;
+  const ax = (b * b - c * c + e * e) / (2 * e), hh = Math.sqrt(Math.max(0, b * b - ax * ax));
+  const mx = A[0] + ax * dx / e, my = A[1] + ax * dy / e;
+  const B1 = [mx - hh * dy / e, my + hh * dx / e], B2 = [mx + hh * dy / e, my - hh * dx / e];
+  let B = B1;
+  if (prevB) B = Math.hypot(B1[0] - prevB[0], B1[1] - prevB[1]) <= Math.hypot(B2[0] - prevB[0], B2[1] - prevB[1]) ? B1 : B2;
+  const t3 = Math.atan2(B[1] - A[1], B[0] - A[0]), t4 = Math.atan2(B[1] - O4[1], B[0] - O4[0]);
+  const P = [A[0] + L.p * Math.cos(t3 + (L.delta || 0)), A[1] + L.p * Math.sin(t3 + (L.delta || 0))];
+  const mu = Math.acos(Math.max(-1, Math.min(1, (b * b + c * c - e * e) / (2 * b * c))));
+  return { A, B, O4, P, t3, t4, mu };
+}
+function grashof(L) {
+  const links = [['ground', L.d], ['crank', L.a], ['coupler', L.b], ['rocker', L.c]];
+  const sorted = links.slice().sort((x, y) => x[1] - y[1]);
+  const s = sorted[0], l = sorted[3], pq = sorted[1][1] + sorted[2][1], sl = s[1] + l[1];
+  let cls, type;
+  if (Math.abs(sl - pq) < 1e-9) { cls = 'change point'; type = 'Change-point (special Grashof): can toggle between branches'; }
+  else if (sl < pq) {
+    cls = 'Grashof';
+    type = s[0] === 'ground' ? 'Double-crank (drag link): both side links rotate fully' : s[0] === 'coupler' ? 'Double-rocker (Grashof): the coupler rotates fully, cranks rock' : s[0] === 'crank' ? 'Crank-rocker: the crank rotates fully, the rocker oscillates' : 'Rocker-crank: the output link rotates fully, the input rocks';
+  } else { cls = 'non-Grashof'; type = 'Triple-rocker: no link can rotate fully'; }
+  return { s: s[0], l: l[0], sl, pq, cls, type };
+}
+function fourBarSweep(L, n) {
+  const pts = []; let prev = null;
+  for (let i = 0; i <= n; i++) { const t = 2 * Math.PI * i / n, r = fourBarAt(L, t, prev); pts.push(r ? Object.assign({ t2: t }, r) : null); if (r) prev = r.B; }
+  return pts;
+}
+
+/* ================= Mechanical 2: forced mass-spring-damper ================= */
+function vibrate(P, T, dt) {
+  // m x'' + c x' + k x = F0 cos(w t)
+  const { m, k, c, F0, w, x0, v0 } = P; const f = (t, x, v) => (F0 * Math.cos(w * t) - c * v - k * x) / m;
+  const out = []; let x = x0, v = v0;
+  for (let i = 0, t = 0; t <= T + 1e-12; i++, t = i * dt) {
+    out.push([t, x, v]);
+    const k1x = v, k1v = f(t, x, v), k2x = v + dt / 2 * k1v, k2v = f(t + dt / 2, x + dt / 2 * k1x, v + dt / 2 * k1v);
+    const k3x = v + dt / 2 * k2v, k3v = f(t + dt / 2, x + dt / 2 * k2x, v + dt / 2 * k2v), k4x = v + dt * k3v, k4v = f(t + dt, x + dt * k3x, v + dt * k3v);
+    x += dt / 6 * (k1x + 2 * k2x + 2 * k3x + k4x); v += dt / 6 * (k1v + 2 * k2v + 2 * k3v + k4v);
+  }
+  return out;
+}
+function vibInfo(P) {
+  const wn = Math.sqrt(P.k / P.m), zeta = P.c / (2 * Math.sqrt(P.k * P.m)), r = P.w / wn;
+  const M = 1 / Math.sqrt((1 - r * r) ** 2 + (2 * zeta * r) ** 2), phase = Math.atan2(2 * zeta * r, 1 - r * r);
+  return { wn, zeta, r, M, X: P.F0 / P.k * M, phase, wd: zeta < 1 ? wn * Math.sqrt(1 - zeta * zeta) : 0, ccr: 2 * Math.sqrt(P.k * P.m) };
+}
+
+/* ================= MIS 1: (s, Q) inventory policy ================= */
+function invTheory(I) {
+  const D = I.mu * 365, H = I.h, EOQ = Math.sqrt(2 * D * I.S / H);
+  const SS = I.z * I.sigma * Math.sqrt(I.L), ROP = I.mu * I.L + SS;
+  const TC = Q => D * I.S / Q + H * (Q / 2 + SS);
+  return { D, EOQ, SS, ROP, TC };
+}
+function invSim(I, Q, s, days, seed) {
+  const r = rngSeed(seed || 7); let onHand = Math.round(s + Q), back = 0; const pipe = [];
+  const series = []; let orders = 0, cost = { order: 0, hold: 0, short: 0 }, demTot = 0, metFromStock = 0, cycles = 0, cyclesShort = 0, cycleShort = false;
+  for (let t = 0; t < days; t++) {
+    // receive
+    let recv = 0; for (const o of pipe) if (o.at === t) recv += o.q;
+    onHand += recv;
+    if (recv && back) { const x = Math.min(back, onHand); back -= x; onHand -= x; }
+    if (recv) { cycles++; if (cycleShort) cyclesShort++; cycleShort = false; }
+    // demand
+    const d = Math.max(0, Math.round(I.mu + I.sigma * gauss(r)));
+    demTot += d; const met = Math.min(d, onHand); metFromStock += met; onHand -= met;
+    if (d > met) { back += d - met; cost.short += (d - met) * I.p; cycleShort = true; }
+    cost.hold += onHand * I.h / 365;
+    const onOrder = pipe.filter(o => o.at > t).reduce((a, o) => a + o.q, 0), IP = onHand - back + onOrder;
+    let placed = 0;
+    if (IP <= s) { pipe.push({ at: t + I.L + 1, q: Q }); orders++; cost.order += I.S; placed = Q; }
+    series.push({ t, onHand, back, IP: IP + placed, d, placed, recv });
+  }
+  return { series, orders, cost, total: cost.order + cost.hold + cost.short, fill: demTot ? metFromStock / demTot : 1, csl: cycles ? 1 - cyclesShort / cycles : 1, avgInv: series.reduce((a, x) => a + x.onHand, 0) / days };
+}
+
+/* ================= MIS 2: bullwhip in a 4-stage chain ================= */
+function bullwhip(B) {
+  // stages 0 retailer .. 3 factory; order-up-to S = (L+1) * MA_N forecast; shipping/production lead time L
+  const T = B.T, K = 4, r = rngSeed(B.seed || 11);
+  const cust = []; for (let t = 0; t < T; t++) cust.push(Math.max(0, Math.round((t >= B.stepAt ? B.base + B.step : B.base) + B.noise * gauss(r))));
+  const st = Array.from({ length: K }, () => ({ inv: B.base * (B.L + 1), back: 0, pipe: Array(B.L).fill(B.base), seen: [], orders: [], invHist: [] }));
+  const orders = Array.from({ length: K }, () => []), inv = Array.from({ length: K }, () => []);
+  let incoming = cust.slice();
+  for (let t = 0; t < T; t++) {
+    let dem = cust[t];
+    for (let k = 0; k < K; k++) {
+      const s = st[k];
+      // receive the shipment that left L weeks ago
+      s.inv += s.pipe.shift();
+      // demand from downstream (customer for the retailer)
+      const need = dem + s.back, ship = Math.min(need, s.inv); s.inv -= ship; s.back = need - ship;
+      s.seen.push(dem);
+      const sig = B.share ? cust.slice(0, t + 1) : s.seen;
+      const win = sig.slice(-B.N), F = win.reduce((a, x) => a + x, 0) / win.length;
+      const S = (B.L + 1) * F, IP = s.inv - s.back + s.pipe.reduce((a, x) => a + x, 0);
+      const q = Math.max(0, Math.round(S - IP));
+      s.pipe.push(q); // supplier assumed to ship in full after L weeks (upstream shortages ignored for clarity)
+      orders[k].push(q); inv[k].push(s.inv - s.back);
+      dem = q;
+    }
+  }
+  const varOf = a => { const m = a.reduce((x, y) => x + y, 0) / a.length; return a.reduce((x, y) => x + (y - m) ** 2, 0) / a.length; };
+  const from = B.warm || 6, vd = varOf(cust.slice(from)) || 1e-9;
+  const ratio = orders.map(o => varOf(o.slice(from)) / vd);
+  const Le = B.L + 1, f1 = 1 + 2 * Le / B.N + 2 * Le * Le / (B.N * B.N);
+  const theory = { decentral: [1, 2, 3, 4].map(k => Math.pow(f1, k)), central: [1, 2, 3, 4].map(k => 1 + 2 * k * Le / B.N + 2 * (k * Le) ** 2 / (B.N * B.N)) };
+  return { cust, orders, inv, ratio, theory };
+}
+
+if (typeof module !== 'undefined') module.exports = { rngSeed, gauss, gridSearch, bfsCost, BTree, fourBarAt, grashof, fourBarSweep, vibrate, vibInfo, invTheory, invSim, bullwhip };
+
+(function () {
+'use strict';
+const $ = s => document.querySelector(s), $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const C = (k, v, cls) => '<div class="counter' + (cls ? ' ' + cls : '') + '"><div class="k">' + k + '</div><div class="v">' + v + '</div></div>';
+const fmt = (x, d) => (Math.abs(x) >= 1000 ? Math.round(x).toLocaleString('en-US') : x.toFixed(d == null ? 1 : d));
+const reduceMotion = (() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } })();
+
+/* ---------- tooltip ---------- */
+const tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true; document.body.appendChild(tip);
+function showTip(t, x, y) { tip.textContent = t; tip.hidden = false; tip.style.left = Math.max(8, Math.min(innerWidth - tip.offsetWidth - 8, x + 12)) + 'px'; tip.style.top = (y + 14) + 'px'; }
+document.addEventListener('mousemove', e => { const t = e.target.closest && e.target.closest('[data-tip]'); if (t) showTip(t.getAttribute('data-tip'), e.clientX, e.clientY); else if (!e.target.closest || !e.target.closest('[data-hover]')) tip.hidden = true; });
+document.addEventListener('scroll', () => { tip.hidden = true; }, { passive: true });
+
+/* ---------- segmented controls ---------- */
+function seg(sel, cb) { const box = $(sel); box.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; box.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); cb(b.dataset.v); }); }
+function sliders(sel, defs, onChange) {
+  const box = $(sel); box.innerHTML = defs.map(d => '<div class="sl"><label for="' + d.id + '">' + d.label + '</label><input type="range" id="' + d.id + '" min="' + d.min + '" max="' + d.max + '" step="' + d.step + '" value="' + d.value + '"><output id="' + d.id + 'o"></output></div>').join('');
+  const read = () => { const o = {}; defs.forEach(d => { o[d.key] = +$('#' + d.id).value; $('#' + d.id + 'o').textContent = d.fmt ? d.fmt(o[d.key]) : o[d.key]; }); return o; };
+  defs.forEach(d => $('#' + d.id).addEventListener('input', () => onChange(read())));
+  return { read, set(key, v) { const d = defs.find(x => x.key === key); $('#' + d.id).value = v; } };
+}
+
+/* ---------- step player ---------- */
+function player(ctlSel, n, draw, ms) {
+  const box = $(ctlSel); let i = 0, timer = null, speed = ms || 500;
+  box.innerHTML = '<button class="btn" type="button" data-a="reset">Reset</button><button class="btn" type="button" data-a="prev">Back</button><button class="btn primary" type="button" data-a="next">Step</button><button class="btn" type="button" data-a="play">Play</button><button class="btn" type="button" data-a="end">End</button><label style="font-size:.85rem;color:var(--muted)">Speed <input type="range" min="1" max="5" value="3" aria-label="Playback speed" style="width:80px;accent-color:var(--acc)"></label><span class="pos"></span>';
+  const b = a => box.querySelector('[data-a="' + a + '"]');
+  const stop = () => { clearInterval(timer); timer = null; b('play').textContent = 'Play'; };
+  const show = () => { const N = n(); i = Math.max(0, Math.min(N - 1, i)); draw(i); box.querySelector('.pos').textContent = (i + 1) + ' / ' + N; b('prev').disabled = i === 0; b('next').disabled = i >= N - 1; };
+  const tick = () => { if (i < n() - 1) { i++; show(); } else stop(); };
+  b('next').onclick = () => { stop(); i++; show(); }; b('prev').onclick = () => { stop(); i--; show(); };
+  b('reset').onclick = () => { stop(); i = 0; show(); }; b('end').onclick = () => { stop(); i = n() - 1; show(); };
+  b('play').onclick = () => { if (timer) { stop(); return; } if (i >= n() - 1) i = 0; b('play').textContent = 'Pause'; timer = setInterval(tick, speed); };
+  box.querySelector('input').oninput = e => { speed = [1400, 900, 500, 220, 70][+e.target.value - 1] * (ms || 500) / 500; if (timer) { clearInterval(timer); timer = setInterval(tick, speed); } };
+  return { show, reset() { stop(); i = 0; show(); }, end() { stop(); i = n() - 1; show(); }, stop, get i() { return i; } };
+}
+
+/* ---------- question cards (two tries, then reveal) ---------- */
+function askQ(box, q, score, onDone) {
+  let tries = 0;
+  const optsHtml = q.numeric ? '<div class="controls"><input type="number" step="any" class="qnum" style="width:130px" aria-label="Your answer"><button class="btn primary qchk" type="button">Check</button></div>'
+    : '<div class="qopts">' + q.opts.map((o, i) => '<button class="btn opt" type="button" data-o="' + i + '">' + o.label + '</button>').join('') + '</div>';
+  box.innerHTML = '<div class="qcard"><p>' + q.text + '</p>' + optsHtml + '<div class="fbq" aria-live="polite"></div></div>';
+  const fb = box.querySelector('.fbq');
+  const finish = good => {
+    if (score) { score.total++; if (good && tries === 0) score.first++; if (score.render) score.render(); }
+    box.querySelectorAll('.opt, .qchk, .qnum').forEach(x => x.disabled = true);
+    if (!q.numeric) box.querySelectorAll('.opt').forEach((x, i) => { if (q.opts[i].val === q.ans) x.classList.add('right'); });
+    fb.innerHTML = '<div class="fb ' + (good ? 'good' : 'bad') + '">' + (good ? '' : 'Answer: ') + q.why + '</div>' + (onDone ? '<div class="controls" style="margin-top:8px"><button class="btn primary qgo" type="button">Continue</button></div>' : '');
+    if (onDone) box.querySelector('.qgo').addEventListener('click', onDone);
+  };
+  const wrong = el => { tries++; if (el) { el.classList.add('wrong'); el.disabled = true; } if (tries === 1) fb.innerHTML = '<div class="fb hint">Hint: ' + q.hint + '</div>'; else finish(false); };
+  if (q.numeric) {
+    const chk = () => { const v = parseFloat(box.querySelector('.qnum').value); if (!isFinite(v)) return; if (Math.abs(v - q.ans) <= (q.tol || 0) + 1e-9) finish(true); else wrong(null); };
+    box.querySelector('.qchk').addEventListener('click', chk);
+    box.querySelector('.qnum').addEventListener('keydown', e => { if (e.key === 'Enter') chk(); });
+  } else box.querySelector('.qopts').addEventListener('click', e => { const b = e.target.closest('.opt'); if (!b || b.disabled) return; if (q.opts[+b.dataset.o].val === q.ans) { b.classList.add('right'); finish(true); } else wrong(b); });
+}
+function quizList(sel, make) {
+  const box = $(sel); const score = { first: 0, total: 0 };
+  const draw = () => {
+    const qs = make();
+    box.innerHTML = '<div class="controls"><button class="btn" type="button" data-new>New questions</button><span class="pos" data-score></span></div>' + qs.map((_, i) => '<div data-q="' + i + '"></div>').join('');
+    score.render = () => { box.querySelector('[data-score]').textContent = 'first-try correct: ' + score.first + ' / ' + score.total; };
+    score.render();
+    qs.forEach((q, i) => askQ(box.querySelector('[data-q="' + i + '"]'), q, score));
+    box.querySelector('[data-new]').onclick = draw;
+  };
+  draw();
+}
+const shuffle = (a, r) => { r = r || Math.random; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+
+/* ---------- line chart with hover ---------- */
+function niceTicks(lo, hi, n) { const span = hi - lo || 1, step0 = span / (n || 5), mag = Math.pow(10, Math.floor(Math.log10(step0))), err = step0 / mag, step = (err >= 7.5 ? 10 : err >= 3.5 ? 5 : err >= 1.5 ? 2 : 1) * mag; const t = []; for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) t.push(+v.toFixed(10)); return t; }
+function lineChart(el, o) {
+  const cw = el.clientWidth, Wd = cw ? Math.max(300, Math.min(760, cw)) : (o.w || 640), Hd = o.h || 240, l = 52, r = o.endLabels ? 92 : 14, t = 12, b = 34;
+  const xs = o.xmin != null ? [o.xmin, o.xmax] : [Math.min(...o.series.map(s => s.pts[0][0])), Math.max(...o.series.map(s => s.pts[s.pts.length - 1][0]))];
+  let ylo = o.ymin, yhi = o.ymax;
+  if (ylo == null || yhi == null) { const ys = o.series.flatMap(s => s.pts.map(p => p[1])).filter(isFinite); ylo = ylo == null ? Math.min(0, ...ys) : ylo; yhi = yhi == null ? Math.max(...ys) * 1.08 || 1 : yhi; }
+  const X = v => l + (v - xs[0]) / (xs[1] - xs[0]) * (Wd - l - r), Y = v => t + (1 - (v - ylo) / (yhi - ylo)) * (Hd - t - b);
+  let s = '<svg viewBox="0 0 ' + Wd + ' ' + Hd + '" role="img" aria-label="' + esc(o.aria || 'chart') + '">';
+  for (const band of (o.bands || [])) s += '<rect x="' + l + '" y="' + Y(band.y1) + '" width="' + (Wd - l - r) + '" height="' + (Y(band.y0) - Y(band.y1)) + '" style="fill:' + band.color + ';opacity:.13"/>';
+  for (const v of niceTicks(ylo, yhi, 5)) s += '<line class="gridl" x1="' + l + '" x2="' + (Wd - r) + '" y1="' + Y(v) + '" y2="' + Y(v) + '"/><text class="axis" x="' + (l - 6) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + (o.fmtY ? o.fmtY(v) : v) + '</text>';
+  for (const v of (o.xticks || niceTicks(xs[0], xs[1], 6))) s += '<text class="axis" x="' + X(v) + '" y="' + (Hd - b + 15) + '" text-anchor="middle">' + (o.fmtX ? o.fmtX(v) : v) + '</text>';
+  if (ylo < 0 && yhi > 0) s += '<line class="zero" x1="' + l + '" x2="' + (Wd - r) + '" y1="' + Y(0) + '" y2="' + Y(0) + '"/>';
+  for (const h of (o.hlines || [])) s += '<line x1="' + l + '" x2="' + (Wd - r) + '" y1="' + Y(h.y) + '" y2="' + Y(h.y) + '" style="stroke:' + h.color + ';stroke-width:1.5;stroke-dasharray:5 4"/>' + (h.label ? '<text class="endlab" x="' + (Wd - r + 4) + '" y="' + (Y(h.y) + 4) + '" style="fill:' + h.color + '">' + h.label + '</text>' : '');
+  const ends = [];
+  o.series.forEach(se => {
+    const d = se.pts.filter(p => isFinite(p[1])).map((p, i) => (i ? 'L' : 'M') + X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join(' ');
+    if (se.area) s += '<path d="' + d + ' L' + X(se.pts[se.pts.length - 1][0]).toFixed(1) + ' ' + Y(Math.max(ylo, 0)) + ' L' + X(se.pts[0][0]).toFixed(1) + ' ' + Y(Math.max(ylo, 0)) + ' Z" style="fill:' + se.color + ';opacity:.15"/>';
+    s += '<path d="' + d + '" style="fill:none;stroke:' + se.color + ';stroke-width:' + (se.width || 2) + (se.dash ? ';stroke-dasharray:' + se.dash : '') + (se.opacity ? ';opacity:' + se.opacity : '') + '"/>';
+    if (o.endLabels && se.name && !se.noLabel) { const p = se.pts[se.pts.length - 1]; ends.push({ x: X(p[0]) + 6, y: Y(p[1]) + 4, c: se.color, n: se.name }); }
+  });
+  ends.sort((a, b) => a.y - b.y); for (let k = 1; k < ends.length; k++) if (ends[k].y - ends[k - 1].y < 13) ends[k].y = ends[k - 1].y + 13;
+  const over = ends.length ? ends[ends.length - 1].y - (Hd - b + 4) : 0; if (over > 0) ends.forEach(e => e.y -= over);
+  ends.forEach(e => { s += '<text class="endlab" x="' + e.x + '" y="' + e.y + '" style="fill:' + e.c + '">' + esc(e.n) + '</text>'; });
+  for (const m of (o.marks || [])) s += '<circle cx="' + X(m[0]) + '" cy="' + Y(m[1]) + '" r="' + (m[3] || 4) + '" style="fill:' + m[2] + '"/>';
+  if (o.cursor != null) s += '<line class="cursor" x1="' + X(o.cursor) + '" x2="' + X(o.cursor) + '" y1="' + t + '" y2="' + (Hd - b) + '"/>';
+  if (o.xlab) s += '<text class="axt" x="' + ((l + Wd - r) / 2) + '" y="' + (Hd - 4) + '" text-anchor="middle">' + o.xlab + '</text>';
+  if (o.ylab) s += '<text class="axt" x="12" y="' + ((t + Hd - b) / 2) + '" text-anchor="middle" transform="rotate(-90 12 ' + ((t + Hd - b) / 2) + ')">' + o.ylab + '</text>';
+  s += '<rect data-hover="1" x="' + l + '" y="' + t + '" width="' + (Wd - l - r) + '" height="' + (Hd - t - b) + '" fill="transparent"/>';
+  el.innerHTML = s + '</svg>';
+  const svg = el.querySelector('svg'), hov = svg.querySelector('[data-hover]');
+  hov.addEventListener('mousemove', e => {
+    const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const loc = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const xv = xs[0] + (loc.x - l) / (Wd - l - r) * (xs[1] - xs[0]);
+    const lines = [(o.xname || 'x') + ' = ' + (o.fmtX ? o.fmtX(xv) : xv.toFixed(2))];
+    o.series.forEach(se => { if (!se.name) return; let best = se.pts[0]; for (const p of se.pts) if (Math.abs(p[0] - xv) < Math.abs(best[0] - xv)) best = p; lines.push(se.name + ': ' + (o.fmtTip ? o.fmtTip(best[1]) : (+best[1]).toFixed(2))); });
+    showTip(lines.join('\n'), e.clientX, e.clientY);
+  });
+  hov.addEventListener('mouseleave', () => { tip.hidden = true; });
+}
+
+/* ================= HOME ================= */
+const LABS = [
+  { id: 'astar', track: 'cs', title: 'Pathfinding: Dijkstra, A* and weighted A*', desc: 'Watch the frontier grow on a maze you can edit. Compare how many cells each version explores and whether it stays optimal.', tags: ['priority queue', 'heuristics', 'grid graphs'] },
+  { id: 'btree', track: 'cs', title: 'B-tree index: insertions and splits', desc: 'Insert keys one event at a time, see nodes overflow and split, and work out why a billion rows need about four page reads.', tags: ['database index', 'balanced trees', 'disk pages'] },
+  { id: 'linkage', track: 'me', title: 'Four-bar linkage: Grashof and coupler curves', desc: 'Drive the crank, drag the link lengths, and see the mechanism switch type, lose its full rotation, or draw a near-straight line.', tags: ['kinematics', 'Grashof', 'transmission angle'] },
+  { id: 'vibration', track: 'me', title: 'Vibration: damping and resonance', desc: 'A forced mass–spring–damper with live response and a frequency-response curve. Push it to resonance and watch the amplitude climb.', tags: ['RK4 simulation', 'damping ratio', 'resonance'] },
+  { id: 'inventory', track: 'mis', title: 'Inventory policy: EOQ and reorder point', desc: 'Run a year of random demand under an ERP-style reorder rule. Count costs, stockouts and service level, and find the undershoot the textbook skips.', tags: ['EOQ', 'safety stock', 'service level'] },
+  { id: 'bullwhip', track: 'mis', title: 'Bullwhip effect: four companies, one signal', desc: 'A small change in customer demand becomes a storm at the factory. Turn on point-of-sale data sharing and measure the difference.', tags: ['supply chain', 'forecasting', 'information sharing'] }
+];
+const GLYPH = {
+  astar: '<svg viewBox="0 0 60 60"><g fill="currentColor" opacity=".25">' + [0, 1, 2, 3, 4].map(i => [0, 1, 2, 3, 4].map(j => '<rect x="' + (2 + i * 11.5) + '" y="' + (2 + j * 11.5) + '" width="10" height="10" rx="2"/>').join('')).join('') + '</g><path d="M7 53 L7 30 L30 30 L30 7 L53 7" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  btree: '<svg viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="3"><rect x="20" y="6" width="20" height="11" rx="2"/><rect x="3" y="40" width="16" height="11" rx="2"/><rect x="22" y="40" width="16" height="11" rx="2"/><rect x="41" y="40" width="16" height="11" rx="2"/><path d="M24 17 L11 40 M30 17 L30 40 M36 17 L49 40"/></svg>',
+  linkage: '<svg viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"><path d="M10 48 L18 22 L46 14 L50 48"/><circle cx="10" cy="48" r="3.5" fill="currentColor"/><circle cx="50" cy="48" r="3.5" fill="currentColor"/><path d="M8 54 H52" stroke-width="2.5"/></svg>',
+  vibration: '<svg viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><path d="M4 30 L10 30 L13 20 L19 40 L25 20 L31 40 L34 30 L38 30"/><rect x="38" y="20" width="18" height="20" rx="3" fill="currentColor"/></svg>',
+  inventory: '<svg viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><path d="M5 12 L5 52 L55 52"/><path d="M8 18 L20 40 L20 18 L32 40 L32 18 L44 40 L44 18 L54 36"/><path d="M5 34 L55 34" stroke-dasharray="4 4" stroke-width="2"/></svg>',
+  bullwhip: '<svg viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M4 48 C 12 44, 14 40, 20 42 S 30 30, 36 34 S 46 10, 56 6"/><path d="M4 52 L56 52" stroke-width="2"/></svg>'
+};
+const TRACK = { cs: { c: 'var(--cs)', s: 'var(--cs-soft)', n: 'Computer science' }, me: { c: 'var(--me)', s: 'var(--me-soft)', n: 'Mechanical engineering' }, mis: { c: 'var(--mis)', s: 'var(--mis-soft)', n: 'Management information systems' } };
+['cs', 'me', 'mis'].forEach(tr => {
+  $('#shelf-' + tr).innerHTML = LABS.filter(l => l.track === tr).map(l => '<a class="card" href="#' + l.id + '" style="--acc:' + TRACK[tr].c + '"><span class="glyph" style="background:' + TRACK[tr].s + ';color:' + TRACK[tr].c + '">' + GLYPH[l.id] + '</span><span class="body"><h3>' + l.title + '</h3><p>' + l.desc + '</p><span class="meta">' + l.tags.map(t => '<span class="tag">' + t + '</span>').join('') + '</span></span></a>').join('');
+});
+
+/* ================= ROUTER ================= */
+const inits = {}, started = {};
+function route() {
+  let h = (location.hash || '#home').slice(1); if (!$('#v-' + h)) h = 'home';
+  $$('[data-view]').forEach(v => { v.hidden = v.dataset.view !== h; });
+  const lab = LABS.find(l => l.id === h);
+  document.documentElement.style.setProperty('--acc', lab ? TRACK[lab.track].c : 'var(--cs)');
+  document.documentElement.style.setProperty('--acc-soft', lab ? TRACK[lab.track].s : 'var(--cs-soft)');
+  $('#crumb').innerHTML = lab ? '› <a href="#home">' + TRACK[lab.track].n + '</a> › ' + esc(lab.title.split(':')[0]) : '';
+  if (lab && inits[h] && !started[h]) { started[h] = true; inits[h](); }
+  Object.keys(stoppers).forEach(k => { if (k !== h) stoppers[k](); });
+  window.scrollTo(0, 0);
+}
+const stoppers = {};
+window.addEventListener('hashchange', route);
+
+/* ================= LAB: A* ================= */
+inits.astar = function () {
+  const W = 24, H = 14, S = 7 * W + 1, G = 6 * W + 22;
+  let walls = new Set(), w = 1, result = null, cmp = null;
+  function maze(kind) {
+    walls = new Set();
+    if (kind === 'rooms') {
+      for (let y = 0; y < H; y++) { if (y !== 3 && y !== 11) walls.add(y * W + 7); if (y !== 6 && y !== 7) walls.add(y * W + 15); }
+      for (let x = 7; x < 15; x++) if (x !== 11) walls.add(9 * W + x);
+      for (let x = 15; x < 24; x++) if (x !== 19) walls.add(3 * W + x);
+      for (let y = 9; y < 14; y++) walls.add(y * W + 19);
+      walls.add(12 * W + 3); walls.add(11 * W + 3); walls.add(10 * W + 3); walls.add(2 * W + 3); walls.add(3 * W + 3); walls.add(4 * W + 3);
+    } else if (kind === 'random') { const r = rngSeed(rnd(1, 9999)); for (let i = 0; i < W * H; i++) if (r() < 0.27) walls.add(i); }
+    walls.delete(S); walls.delete(G);
+  }
+  function run() {
+    result = gridSearch(W, H, walls, S, G, w);
+    const opt = bfsCost(W, H, walls, S, G);
+    cmp = [0, 1, 2.5].map(ww => { const r = gridSearch(W, H, walls, S, G, ww); return { w: ww, exp: r.expanded, cost: r.cost }; });
+    $('#asCmp').innerHTML = '<tr><th>Version</th><th>Cells expanded</th><th>Path cost</th></tr>' + cmp.map(c => '<tr' + (c.w === w ? ' class="top"' : '') + '><td>' + (c.w === 0 ? 'Dijkstra' : c.w === 1 ? 'A*' : 'Weighted A*') + '</td><td class="n">' + c.exp + '</td><td class="n">' + (c.cost === Infinity ? 'no path' : c.cost + (c.cost > opt ? ' (+' + (c.cost - opt) + ')' : ' ✓')) + '</td></tr>').join('');
+    result.opt = opt;
+    pl.reset();
+  }
+  const cs = 30;
+  function draw(i) {
+    const st = result.steps[i], closed = new Set(result.steps.slice(0, i + 1).map(s => s.cur)), front = new Set(st.frontier.map(f => f.p)), last = i === result.steps.length - 1;
+    const gOf = new Map(); result.steps.slice(0, i + 1).forEach(s => gOf.set(s.cur, s.cg)); st.frontier.forEach(f => gOf.set(f.p, f.g));
+    let s = '<svg viewBox="0 0 ' + (W * cs) + ' ' + (H * cs) + '" role="img" aria-label="Maze search">';
+    for (let p = 0; p < W * H; p++) {
+      const x = (p % W) * cs, y = ((p / W) | 0) * cs, gg = gOf.get(p), hh = result.h(p);
+      const cls = walls.has(p) ? 'wall' : p === st.cur ? 'curc' : front.has(p) ? 'front' : closed.has(p) ? 'closed' : '';
+      const fill = cls ? '' : ' style="fill:var(--surface-2)"';
+      s += '<rect class="cell ' + cls + '"' + fill + ' x="' + x + '" y="' + y + '" width="' + cs + '" height="' + cs + '" data-i="' + p + '" data-tip="cell (' + (p % W) + ', ' + ((p / W) | 0) + ')' + (walls.has(p) ? ' · wall' : gg != null ? '\ng = ' + gg + ', h = ' + hh + ', f = ' + (gg + w * hh) : '\nh = ' + hh) + '" style="cursor:pointer' + (cls ? '' : ';fill:var(--surface-2)') + '"/>';
+    }
+    if (last && result.path.length) s += '<path class="path" d="' + result.path.map((p, k) => (k ? 'L' : 'M') + ((p % W) * cs + cs / 2) + ' ' + (((p / W) | 0) * cs + cs / 2)).join(' ') + '"/>';
+    for (const [p, lab, col] of [[S, 'S', 'var(--cs)'], [G, 'G', 'var(--bad)']]) s += '<rect x="' + ((p % W) * cs + 2) + '" y="' + (((p / W) | 0) * cs + 2) + '" width="' + (cs - 4) + '" height="' + (cs - 4) + '" rx="5" style="fill:' + col + '"/><text class="sg" x="' + ((p % W) * cs + cs / 2) + '" y="' + (((p / W) | 0) * cs + cs / 2 + 4) + '">' + lab + '</text>';
+    $('#asFig').innerHTML = s + '</svg>';
+    $('#asPQ').innerHTML = '<tr><th>#</th><th>cell</th><th>g</th><th>h</th><th>key f</th></tr>' + st.frontier.slice(0, 7).map((f, k) => '<tr' + (k === 0 ? ' class="top"' : '') + '><td class="n">' + (k + 1) + '</td><td class="n">(' + (f.p % W) + ',' + ((f.p / W) | 0) + ')</td><td class="n">' + f.g + '</td><td class="n">' + f.h + '</td><td class="n">' + (+(f.f).toFixed(1)) + '</td></tr>').join('') + (st.frontier.length > 7 ? '<tr><td colspan="5" style="color:var(--muted)">… ' + (st.frontier.length - 7) + ' more</td></tr>' : '') + (st.frontier.length ? '' : '<tr><td colspan="5" style="color:var(--muted)">empty</td></tr>');
+    $('#asCount').innerHTML = C('Expanded', i + 1) + C('Frontier', st.frontier.length) + C('Path cost', last ? (result.cost === Infinity ? 'none' : result.cost) : '…') + C('Shortest possible', result.opt === Infinity ? 'none' : result.opt, last ? (result.cost === result.opt ? 'good' : 'bad') : '');
+    $('#asNarr').innerHTML = last ? (result.cost === Infinity ? 'The frontier ran empty: no path exists.' : '<b>Goal reached</b> after expanding ' + result.steps.length + ' cells. Path cost ' + result.cost + (result.cost === result.opt ? ', the shortest possible.' : ', which is ' + (result.cost - result.opt) + ' more than the shortest: weighted A* traded optimality for speed.'))
+      : '<b>Expand (' + (st.cur % W) + ', ' + ((st.cur / W) | 0) + ')</b>: it had the smallest key f = ' + st.cg + (w ? ' + ' + (w === 1 ? '' : w + '·') + st.ch : '') + ' = ' + (+st.cf.toFixed(1)) + '. ' + (st.added.length ? st.added.length + ' neighbour(s) enter or improve in the queue.' : 'No new neighbours.');
+  }
+  const pl = player('#asCtl', () => result.steps.length, draw, 120);
+  stoppers.astar = pl.stop;
+  $('#asFig').addEventListener('click', e => { const c = e.target.closest('[data-i]'); if (!c) return; const p = +c.dataset.i; if (p === S || p === G) return; walls.has(p) ? walls.delete(p) : walls.add(p); run(); });
+  seg('#asMode', v => { w = +v; run(); });
+  seg('#asMaze', v => { maze(v); run(); });
+  maze('rooms'); run(); pl.end();
+  quizList('#asQs', () => {
+    // pick a mid-search state of A* on the current maze with at least 4 frontier entries
+    const r = gridSearch(W, H, walls, S, G, 1), cand = r.steps.map((s, i) => ({ s, i })).filter(o => o.s.frontier.length >= 4 && o.i > 3 && o.i < r.steps.length - 2);
+    const pick = cand.length ? cand[rnd(0, cand.length - 1)] : null, qs = [];
+    if (pick) {
+      const nxt = r.steps[pick.i + 1].cur, fr = pick.s.frontier, others = shuffle(fr.filter(f => f.p !== nxt)).slice(0, 3), opts = shuffle(others.concat(fr.filter(f => f.p === nxt)));
+      const lab = f => '(' + (f.p % W) + ',' + ((f.p / W) | 0) + ') · g ' + f.g + ', h ' + f.h;
+      qs.push({ text: 'A* on this maze has these cells in its frontier (among others). Which one does it expand next? Ties on f are broken by the smaller h.', opts: opts.map(f => ({ label: lab(f), val: f.p })), ans: nxt, hint: 'Compute f = g + h for each one and take the smallest.', why: 'Smallest f = g + h wins' + (fr.filter(f => f.f === fr[0].f).length > 1 ? ', with the tie broken by smaller h' : '') + ': (' + (nxt % W) + ',' + ((nxt / W) | 0) + ').' });
+    }
+    qs.push({ text: 'Weighted A* with w = 2.5 expands fewer cells. Is its path guaranteed to be the shortest?', opts: [{ label: 'No, but it is at most 2.5× the shortest', val: 1 }, { label: 'Yes, always', val: 2 }, { label: 'No, and it can be arbitrarily long', val: 3 }], ans: 1, hint: 'An inflated heuristic can overestimate, so it is no longer admissible.', why: 'w·h can overestimate, so optimality is lost, but with a consistent h the cost stays within w times the optimum.' });
+    qs.push({ text: 'Dijkstra explores a roughly circular region around the start; A* explores a narrow band toward the goal. What makes the difference?', opts: [{ label: 'h pulls the search toward the goal', val: 1 }, { label: 'A* uses a different queue', val: 2 }, { label: 'A* skips walls', val: 3 }], ans: 1, hint: 'Both use the same priority queue; only the key differs.', why: 'Cells farther from the goal get a larger key from h, so they wait. Dijkstra (h = 0) only knows the distance from the start.' });
+    qs.push({ numeric: true, text: 'A cell has g = 9 and is at Manhattan distance 7 from the goal. What is its key in weighted A* with w = 2.5?', ans: 26.5, tol: 0.01, hint: 'f = g + w · h.', why: '9 + 2.5 × 7 = 26.5.' });
+    return qs;
+  });
+};
+
+/* ================= LAB: B-tree ================= */
+inits.btree = function () {
+  let T, frames, keysUsed;
+  const PRE = [10, 20, 5, 6, 12, 30, 7, 17, 3, 25, 40, 35, 1, 15, 22, 27];
+  function build(keys) {
+    T = BTree(3); frames = [{ type: 'start', tree: T.clone() }]; keysUsed = [];
+    keys.forEach(k => { const ev = T.insert(k); keysUsed.push(k); ev.forEach(e => frames.push(Object.assign({ key: k, n: keysUsed.length }, e))); });
+    pl.reset(); pl.end();
+  }
+  function layout(tree) {
+    const KW = 30, NW = KW * 3, gap = 14, lv = []; let maxD = 0;
+    (function walk(n, d) { maxD = Math.max(maxD, d); (lv[d] = lv[d] || []).push(n); n.kids.forEach(c => walk(c, d + 1)); })(tree, 0);
+    const pos = new Map(); let x = 0;
+    (function place(n, d) { if (!n.kids.length) { pos.set(n.id, { x: x, d }); x += NW + gap; return; } n.kids.forEach(c => place(c, d + 1)); const a = pos.get(n.kids[0].id), b = pos.get(n.kids[n.kids.length - 1].id); pos.set(n.id, { x: (a.x + b.x) / 2, d }); })(tree, 0);
+    return { pos, W: Math.max(x - gap, NW), H: (maxD + 1) * 86, NW, KW };
+  }
+  function treeSVG(tree, hl) {
+    const L = layout(tree), pad = 10, Wd = L.W + 2 * pad, Hd = L.H + 2 * pad - 30;
+    let s = '<svg viewBox="0 0 ' + Math.max(Wd, 300) + ' ' + Hd + '" role="img" aria-label="B-tree" style="max-width:' + Math.max(Wd, 300) * 1.3 + 'px;margin:0 auto">';
+    const off = Math.max(0, (300 - Wd) / 2);
+    (function edges(n) { const p = L.pos.get(n.id); n.kids.forEach((c, i) => { const q = L.pos.get(c.id); s += '<path class="bedge" d="M' + (off + pad + p.x + Math.min(i, n.keys.length) * L.KW) + ' ' + (pad + p.d * 86 + 26) + ' L' + (off + pad + q.x + L.NW / 2) + ' ' + (pad + q.d * 86) + '"/>'; edges(c); }); })(tree);
+    (function nodes(n) {
+      const p = L.pos.get(n.id), x = off + pad + p.x, y = pad + p.d * 86, cls = (hl && hl[n.id]) || '';
+      s += '<g class="bnode ' + cls + '"><rect x="' + x + '" y="' + y + '" width="' + L.NW + '" height="26" rx="5"/>';
+      for (let k = 1; k < 3; k++) s += '<line class="bsep" x1="' + (x + k * L.KW) + '" x2="' + (x + k * L.KW) + '" y1="' + (y + 3) + '" y2="' + (y + 23) + '"/>';
+      n.keys.forEach((k, i) => { s += '<text class="bkey' + (hl && hl.newKey === k ? ' newk' : '') + '" x="' + (x + i * L.KW + L.KW / 2) + '" y="' + (y + 18) + '">' + k + '</text>'; });
+      if (n.keys.length > 3) s += '<text class="bkey" style="fill:var(--bad)" x="' + (x + 3 * L.KW + L.KW / 2) + '" y="' + (y + 18) + '">' + n.keys[3] + '</text>';
+      s += '</g>'; n.kids.forEach(nodes);
+    })(tree);
+    return s + '</svg>';
+  }
+  function stats(tree) { let nodes = 0, keys = 0, h = 0; (function w(n, d) { nodes++; keys += n.keys.length; h = Math.max(h, d + 1); n.kids.forEach(c => w(c, d + 1)); })(tree, 0); return { nodes, keys, h }; }
+  function draw(i) {
+    const f = frames[i], hl = {};
+    if (f.type === 'visit') hl[f.node] = 'hot';
+    if (f.type === 'insert') { hl[f.node] = f.over ? 'split' : 'new'; hl.newKey = f.key; }
+    if (f.type === 'split') { hl[f.left] = 'new'; hl[f.right] = 'new'; hl[f.parent] = 'hot'; }
+    if (f.type === 'exists') hl[f.node] = 'found';
+    $('#btFig').innerHTML = treeSVG(f.tree, hl);
+    const st = stats(f.tree), splits = frames.slice(0, i + 1).filter(x => x.type === 'split').length;
+    $('#btCount').innerHTML = C('Keys', st.keys) + C('Nodes (pages)', st.nodes) + C('Height', st.h) + C('Splits so far', splits);
+    const t = { start: 'An empty tree: one empty root node.', visit: '<b>Insert ' + f.key + '</b>: compare with the keys in the highlighted node and go down child ' + (f.child + 1) + '.', insert: '<b>Insert ' + f.key + '</b> into the leaf in sorted order.' + (f.over ? ' Now it holds 4 keys: <b>overflow</b>, it must split.' : ' It fits.'), split: 'The node splits: the median <b>' + f.median + '</b> moves up' + (f.newRoot ? ' into a <b>new root</b>. The tree grows one level taller, from the top.' : ' into its parent (highlighted).') + ' Both halves are valid nodes.', done: 'Insertion of ' + f.key + ' complete.', exists: f.key + ' is already in the tree; nothing to do.' };
+    $('#btNarr').innerHTML = (t[f.type] || '');
+  }
+  const pl = player('#btCtl', () => frames.length, draw, 650);
+  stoppers.btree = pl.stop;
+  seg('#btSeq', v => build(v === 'preset' ? PRE : v === 'sorted' ? Array.from({ length: 16 }, (_, i) => i + 1) : shuffle(Array.from({ length: 60 }, (_, i) => i + 1)).slice(0, 16)));
+  $('#btAdd').onclick = () => { const k = parseInt($('#btKey').value, 10); if (!(k >= 1 && k <= 999)) return; const ev = T.insert(k); keysUsed.push(k); ev.forEach(e => frames.push(Object.assign({ key: k }, e))); pl.end(); $('#btKey').value = ''; };
+  $('#btGo').onclick = () => { const k = parseInt($('#btFind').value, 10); if (!(k >= 1)) return; const r = T.search(k); const hl = {}; r.vis.forEach(id => hl[id] = 'hot'); if (r.found) hl[r.vis[r.vis.length - 1]] = 'found'; $('#btFig').innerHTML = treeSVG(T.clone(), hl); $('#btFound').innerHTML = (r.found ? '<b>Found ' + k + '</b>' : '<b>' + k + ' is not in the tree</b>') + ' after reading ' + r.vis.length + ' page(s): one per level.'; };
+  const scale = () => { const N = Math.pow(10, +$('#btN').value), m = +$('#btM').value; $('#btNo').textContent = '10^' + $('#btN').value; $('#btMo').textContent = m; const h = Math.ceil(Math.log(N) / Math.log(m)); $('#btScale').innerHTML = 'With <b>' + N.toLocaleString('en-US') + '</b> rows and <b>' + m + '</b> keys per page, a lookup reads about <b>' + h + '</b> pages. A plain scan would read about ' + Math.ceil(N / m).toLocaleString('en-US') + ' pages.'; };
+  $('#btN').oninput = scale; $('#btM').oninput = scale; scale();
+  build(PRE);
+  // Try
+  const score = { first: 0, total: 0 };
+  score.render = () => { $('#btqScore').textContent = 'first-try correct: ' + score.first + ' / ' + score.total; };
+  function newQ() {
+    const keys = shuffle(Array.from({ length: 50 }, (_, i) => i + 1)).slice(0, rnd(7, 11)), t = BTree(3); keys.forEach(k => t.insert(k));
+    let k; do { k = rnd(1, 60); } while (keys.includes(k));
+    const before = t.clone(); $('#btqFig').innerHTML = treeSVG(before, {});
+    const ev = t.insert(k), ins = ev.find(e => e.type === 'insert'), splits = ev.filter(e => e.type === 'split');
+    const leaves = []; (function w(n) { if (!n.kids.length) leaves.push(n); n.kids.forEach(w); })(before);
+    const target = leaves.find(l => l.id === ins.node);
+    const qs = [
+      { text: 'Insert <b>' + k + '</b>. Which leaf receives it?', opts: leaves.map(l => ({ label: '[' + l.keys.join(', ') + ']', val: l.id })), ans: target.id, hint: 'Start at the root; at each node go to the child between the two keys that surround ' + k + '.', why: 'Following the keys down leads to the leaf [' + target.keys.join(', ') + '].' },
+      { text: 'Will inserting ' + k + ' cause at least one split?', opts: [{ label: 'Yes', val: 1 }, { label: 'No', val: 0 }], ans: splits.length ? 1 : 0, hint: 'A node splits only when it would hold 4 keys.', why: splits.length ? 'That leaf already has 3 keys, so the 4th makes it split' + (splits.length > 1 ? ', and the split cascades up ' + (splits.length - 1) + ' more level(s).' : '.') : 'The leaf has room, so no split.' }
+    ];
+    if (splits.length) { const med = splits[0].median, ck = target.keys.concat([k]).sort((a, b) => a - b); qs.push({ text: 'The leaf [' + target.keys.join(', ') + '] + ' + k + ' splits. Which key moves up to the parent?', opts: ck.map(x => ({ label: String(x), val: x })), ans: med, hint: 'Sort the 4 keys; the median (here the 3rd of 4, index 2) goes up.', why: 'Sorted: ' + ck.join(', ') + '. The key at the middle position, ' + med + ', moves up; ' + ck.filter(x => x < med).join(', ') + ' stay left and ' + ck.filter(x => x > med).join(', ') + ' go right.' }); }
+    let qi = 0; const next = () => { if (qi < qs.length) { askQ($('#btqCard'), qs[qi++], score, next); return; } $('#btqFig').innerHTML = treeSVG(t.clone(), {}); $('#btqCard').innerHTML = '<div class="fb good">After inserting ' + k + ': the tree above.</div>'; };
+    next();
+  }
+  $('#btqNew').onclick = newQ; score.render(); newQ();
+};
+
+/* ================= LAB: four-bar ================= */
+inits.linkage = function () {
+  const PRE = { cr: { a: 1, b: 3, c: 2.5, d: 3, p: 1.6, delta: 25 }, dc: { a: 2, b: 2.6, c: 2.2, d: 1, p: 1.2, delta: 20 }, dr: { a: 2.4, b: 1, c: 2.2, d: 2.6, p: 0.6, delta: 40 }, hk: { a: 1, b: 2.5, c: 2.5, d: 2, p: 5, delta: 0 } };
+  let L = Object.assign({}, PRE.cr), t2 = 40, dir = 1, prevB = null, sweep = null, playing = !reduceMotion, raf = null;
+  const sl = sliders('#fbSl', [
+    { id: 'fbA', key: 'a', label: 'Crank a', min: 0.4, max: 4, step: 0.05, value: L.a }, { id: 'fbB', key: 'b', label: 'Coupler b', min: 0.4, max: 4, step: 0.05, value: L.b },
+    { id: 'fbC', key: 'c', label: 'Rocker c', min: 0.4, max: 4, step: 0.05, value: L.c }, { id: 'fbD', key: 'd', label: 'Ground d', min: 0.4, max: 4, step: 0.05, value: L.d },
+    { id: 'fbP', key: 'p', label: 'Point P on coupler', min: 0, max: 5.5, step: 0.05, value: L.p }, { id: 'fbDl', key: 'delta', label: 'P angle (°)', min: -90, max: 90, step: 1, value: L.delta }
+  ], v => { L = v; prevB = null; recompute(); });
+  function Lr() { return { a: L.a, b: L.b, c: L.c, d: L.d, p: L.p, delta: L.delta * Math.PI / 180 }; }
+  function recompute() {
+    sweep = fourBarSweep(Lr(), 360);
+    const g = grashof(L), feas = sweep.filter(Boolean);
+    $('#fbType').textContent = g.type;
+    $('#fbGr').innerHTML = 'Shortest link: <b>' + g.s + '</b>, longest: <b>' + g.l + '</b>. s + l = ' + g.sl.toFixed(2) + (g.cls === 'Grashof' ? ' &lt; ' : g.cls === 'change point' ? ' = ' : ' &gt; ') + 'p + q = ' + g.pq.toFixed(2) + ' → <span class="badge ' + (g.cls === 'Grashof' ? 'good' : g.cls === 'change point' ? 'warn' : 'bad') + '">' + g.cls + '</span>' + (feas.length < 361 ? ' The crank can only reach ' + Math.round(feas.length - 1) + '° of its circle here, so it rocks back and forth.' : '');
+    const mus = feas.map(s => s.mu * 180 / Math.PI), t4s = feas.map(s => s.t4 * 180 / Math.PI);
+    $('#fbCount').innerHTML = C('Rocker swing', feas.length ? (Math.max(...t4s) - Math.min(...t4s)).toFixed(1) + '°' : '—') + C('μ min', mus.length ? Math.min(...mus).toFixed(1) + '°' : '—', mus.length && Math.min(...mus) < 40 ? 'bad' : 'good') + C('μ max', mus.length ? Math.max(...mus).toFixed(1) + '°' : '—', mus.length && Math.max(...mus) > 140 ? 'bad' : 'good') + C('Reachable θ₂', (feas.length - 1) + '°');
+    plot(); drawMech();
+  }
+  function plot() {
+    const pts4 = [], ptsm = [];
+    sweep.forEach((s, i) => { pts4.push([i, s ? s.t4 * 180 / Math.PI : NaN]); ptsm.push([i, s ? s.mu * 180 / Math.PI : NaN]); });
+    // split into continuous runs for drawing
+    const runs = a => { const out = []; let cur = []; a.forEach(p => { if (isFinite(p[1])) cur.push(p); else if (cur.length) { out.push(cur); cur = []; } }); if (cur.length) out.push(cur); return out; };
+    const series = runs(pts4).map((r, k) => ({ name: k ? '' : 'θ₄', color: 'var(--s1)', pts: r })).concat(runs(ptsm).map((r, k) => ({ name: k ? '' : 'μ', color: 'var(--s2)', pts: r })));
+    lineChart($('#fbPlot'), { series, xmin: 0, xmax: 360, ymin: -180, ymax: 180, xticks: [0, 90, 180, 270, 360], bands: [{ y0: 40, y1: 140, color: 'var(--good)' }], cursor: t2, xlab: 'crank angle θ₂ (°)', ylab: 'degrees', xname: 'θ₂', fmtX: v => Math.round(v) + '°', fmtTip: v => (+v).toFixed(1) + '°', h: 220, aria: 'Output angle and transmission angle versus crank angle' });
+  }
+  function drawMech() {
+    const r = fourBarAt(Lr(), t2 * Math.PI / 180, prevB);
+    const all = sweep.filter(Boolean), xs = all.flatMap(s => [s.A[0], s.B[0], s.P[0], 0, L.d]), ys = all.flatMap(s => [s.A[1], s.B[1], s.P[1], 0]);
+    const minx = Math.min(...xs) - 0.5, maxx = Math.max(...xs) + 0.5, miny = Math.min(...ys) - 0.6, maxy = Math.max(...ys) + 0.5;
+    const Wd = 560, sc = Math.min(Wd / (maxx - minx), 360 / (maxy - miny)), Hd = (maxy - miny) * sc;
+    const X = x => (x - minx) * sc, Y = y => (maxy - y) * sc;
+    let s = '<svg viewBox="0 0 ' + Wd + ' ' + Hd + '" role="img" aria-label="Four-bar mechanism">';
+    const trace = all.map((q, i) => (i ? 'L' : 'M') + X(q.P[0]).toFixed(1) + ' ' + Y(q.P[1]).toFixed(1)).join(' ');
+    s += '<path class="trace" d="' + trace + '"/>';
+    for (const gx of [0, L.d]) s += '<path class="ground" d="M' + (X(gx) - 14) + ' ' + (Y(0) + 16) + ' L' + (X(gx) + 14) + ' ' + (Y(0) + 16) + ' L' + X(gx) + ' ' + Y(0) + ' Z"/>';
+    s += '<line x1="' + X(0) + '" y1="' + (Y(0) + 16) + '" x2="' + X(L.d) + '" y2="' + (Y(0) + 16) + '" style="stroke:var(--muted);stroke-width:2;stroke-dasharray:6 4"/>';
+    if (r) {
+      prevB = r.B;
+      s += '<line class="link" x1="' + X(0) + '" y1="' + Y(0) + '" x2="' + X(r.A[0]) + '" y2="' + Y(r.A[1]) + '" style="stroke:var(--s1)"/>';
+      s += '<path d="M' + X(r.A[0]) + ' ' + Y(r.A[1]) + ' L' + X(r.B[0]) + ' ' + Y(r.B[1]) + ' L' + X(r.P[0]) + ' ' + Y(r.P[1]) + ' Z" style="fill:var(--me);opacity:.18;stroke:none"/>';
+      s += '<line class="link" x1="' + X(r.A[0]) + '" y1="' + Y(r.A[1]) + '" x2="' + X(r.B[0]) + '" y2="' + Y(r.B[1]) + '" style="stroke:var(--me)"/>';
+      s += '<line x1="' + X(r.A[0]) + '" y1="' + Y(r.A[1]) + '" x2="' + X(r.P[0]) + '" y2="' + Y(r.P[1]) + '" style="stroke:var(--me);stroke-width:3;stroke-dasharray:5 4"/>';
+      s += '<line class="link" x1="' + X(L.d) + '" y1="' + Y(0) + '" x2="' + X(r.B[0]) + '" y2="' + Y(r.B[1]) + '" style="stroke:var(--s3)"/>';
+      for (const q of [[0, 0], r.A, r.B, [L.d, 0]]) s += '<circle class="joint" cx="' + X(q[0]) + '" cy="' + Y(q[1]) + '" r="7"/>';
+      s += '<circle class="ppt" cx="' + X(r.P[0]) + '" cy="' + Y(r.P[1]) + '" r="8"/>';
+      s += '<text class="lbls" x="' + (X(0) - 8) + '" y="' + (Y(0) + 34) + '">O₂</text><text class="lbls" x="' + (X(L.d) - 8) + '" y="' + (Y(0) + 34) + '">O₄</text><text class="lbl" x="' + (X(r.P[0]) + 10) + '" y="' + (Y(r.P[1]) - 8) + '">P</text>';
+      s += '<text class="lbls" x="8" y="16">θ₂ ' + Math.round(t2) + '° · θ₄ ' + (r.t4 * 180 / Math.PI).toFixed(1) + '° · μ ' + (r.mu * 180 / Math.PI).toFixed(1) + '°</text>';
+    } else s += '<text class="lbl" x="12" y="20">Cannot assemble at θ₂ = ' + Math.round(t2) + '°</text>';
+    $('#fbFig').innerHTML = s + '</svg>';
+    $('#fbTo').textContent = Math.round(t2) + '°'; $('#fbT').value = Math.round(t2);
+  }
+  function tick() {
+    if (!playing) return;
+    let nt = t2 + dir * 1.2; if (nt >= 360) nt -= 360; if (nt < 0) nt += 360;
+    if (!fourBarAt(Lr(), nt * Math.PI / 180, prevB)) { dir = -dir; nt = t2 + dir * 1.2; }
+    t2 = nt; drawMech(); if (location.hash === '#linkage' && Math.round(t2) % 3 === 0) plot();
+    raf = requestAnimationFrame(tick);
+  }
+  const play = on => { playing = on; $('#fbPlay').textContent = on ? 'Pause' : 'Play'; cancelAnimationFrame(raf); if (on) raf = requestAnimationFrame(tick); };
+  stoppers.linkage = () => play(false);
+  $('#fbPlay').onclick = () => play(!playing);
+  $('#fbT').oninput = e => { play(false); t2 = +e.target.value; drawMech(); plot(); };
+  seg('#fbPreset', v => { L = Object.assign({}, PRE[v]); Object.keys(L).forEach(k => sl.set(k, L[k])); sl.read(); prevB = null; t2 = 40; recompute(); });
+  sl.read(); recompute(); play(playing);
+  quizList('#fbQs', () => {
+    const qs = [];
+    for (let n = 0; n < 2; n++) {
+      let Lq, g; do { Lq = { a: +(0.6 + Math.random() * 3).toFixed(1), b: +(0.6 + Math.random() * 3).toFixed(1), c: +(0.6 + Math.random() * 3).toFixed(1), d: +(0.6 + Math.random() * 3).toFixed(1) }; g = grashof(Lq); } while (g.cls === 'change point');
+      const opts = ['Crank-rocker', 'Double-crank (drag link)', 'Double-rocker (Grashof)', 'Rocker-crank', 'Triple-rocker'];
+      const ans = opts.find(o => g.type.startsWith(o.split(' (')[0]));
+      qs.push({ text: 'Ground d = ' + Lq.d + ', crank a = ' + Lq.a + ', coupler b = ' + Lq.b + ', rocker c = ' + Lq.c + '. What type of linkage is it?', opts: opts.map(o => ({ label: o, val: o })), ans, hint: 'First check s + l against p + q. If Grashof, the position of the shortest link decides the type.', why: 's + l = ' + g.sl.toFixed(1) + ', p + q = ' + g.pq.toFixed(1) + ' (' + g.cls + '); shortest link: ' + g.s + '. So: ' + g.type + '.' });
+    }
+    qs.push({ text: 'For a crank-rocker, which link must be the shortest?', opts: [{ label: 'The crank (input, next to the ground)', val: 1 }, { label: 'The ground', val: 2 }, { label: 'The coupler', val: 3 }], ans: 1, hint: 'The shortest link of a Grashof chain is the one that turns fully.', why: 'The shortest link rotates fully relative to its neighbours; as the crank it gives a crank-rocker.' });
+    qs.push({ text: 'At some crank angle the transmission angle μ is 18°. Is that a good working position?', opts: [{ label: 'No, force transmission is poor', val: 1 }, { label: 'Yes, smaller μ is better', val: 2 }, { label: 'It does not matter', val: 3 }], ans: 1, hint: 'μ near 90° means the coupler pushes squarely on the rocker.', why: 'Below about 40° most of the coupler force is wasted along the rocker; the mechanism may bind.' });
+    return qs;
+  });
+};
+
+/* ================= LAB: vibration ================= */
+inits.vibration = function () {
+  let P, sim, info, tNow = 0, playing = !reduceMotion, raf = null, last = null;
+  const CASES = { free: { m: 1, k: 40, c: 1.2, F0: 0, w: 4, x0: 0.15 }, forced: { m: 1, k: 40, c: 1.2, F0: 4, w: 4, x0: 0 }, res: { m: 1, k: 40, c: 0.6, F0: 4, w: 6.32, x0: 0 } };
+  const sl = sliders('#viSl', [
+    { id: 'viM', key: 'm', label: 'Mass m (kg)', min: 0.2, max: 5, step: 0.1, value: 1 }, { id: 'viK', key: 'k', label: 'Stiffness k (N/m)', min: 5, max: 200, step: 1, value: 40 },
+    { id: 'viC', key: 'c', label: 'Damping c (N·s/m)', min: 0, max: 30, step: 0.1, value: 1.2 }, { id: 'viF', key: 'F0', label: 'Force F₀ (N)', min: 0, max: 10, step: 0.1, value: 4 },
+    { id: 'viW', key: 'w', label: 'Forcing ω (rad/s)', min: 0.2, max: 20, step: 0.02, value: 4 }, { id: 'viX', key: 'x0', label: 'Start x₀ (m)', min: -0.3, max: 0.3, step: 0.01, value: 0 }
+  ], v => { P = Object.assign({ v0: 0 }, v); recompute(); });
+  function recompute() {
+    info = vibInfo(P); sim = vibrate(P, 20, 0.004); tNow = 0;
+    const reg = info.zeta < 1 ? 'Underdamped' : Math.abs(info.zeta - 1) < 0.02 ? 'Critically damped' : 'Overdamped';
+    $('#viReg').textContent = reg + (P.F0 > 0 ? ' · forced at r = ω/ωₙ = ' + info.r.toFixed(2) : ' · free vibration');
+    $('#viTxt').innerHTML = P.F0 > 0 ? (Math.abs(info.r - 1) < 0.08 ? '<b>Near resonance.</b> The force pushes in step with the natural motion, so energy builds up until damping eats it. Steady amplitude is ' + info.M.toFixed(1) + '× the static deflection F₀/k.' : info.r < 1 ? 'Below resonance: the mass follows the force, amplitude slightly above static (' + info.M.toFixed(2) + '×).' : 'Above resonance: the mass moves opposite to the force and the amplitude drops (' + info.M.toFixed(2) + '×).') + ' At the start, the free vibration and the forced one overlap (the transient), then the free part dies out.'
+      : (info.zeta < 1 ? 'It rings at the damped frequency ω_d and the envelope decays as e^(−ζωₙt).' : 'Too much damping to oscillate: it creeps back to zero.');
+    $('#viCount').innerHTML = C('ωₙ (rad/s)', info.wn.toFixed(2)) + C('fₙ (Hz)', (info.wn / 2 / Math.PI).toFixed(2)) + C('ζ', info.zeta.toFixed(3), info.zeta < 0.05 ? 'bad' : '') + C('c critical', info.ccr.toFixed(1)) + C('ω_d (rad/s)', info.zeta < 1 ? info.wd.toFixed(2) : '—') + (P.F0 > 0 ? C('Steady X (mm)', (info.X * 1000).toFixed(1)) + C('Magnification', info.M.toFixed(2), info.M > 4 ? 'bad' : '') + C('Phase lag', (info.phase * 180 / Math.PI).toFixed(0) + '°') : '');
+    drawFR(); drawPlot(); drawAnim();
+  }
+  function drawPlot() {
+    const pts = sim.filter((_, i) => i % 5 === 0).map(q => [q[0], q[1] * 1000]);
+    const series = [{ name: 'x(t)', color: 'var(--s1)', pts }];
+    if (P.F0 === 0 && info.zeta < 1) { const A = Math.abs(P.x0) * 1000; series.push({ name: 'envelope', color: 'var(--s2)', dash: '5 4', pts: pts.map(p => [p[0], A * Math.exp(-info.zeta * info.wn * p[0])]) }); }
+    const hl = P.F0 > 0 ? [{ y: info.X * 1000, color: 'var(--s3)', label: '+X' }, { y: -info.X * 1000, color: 'var(--s3)', label: '−X' }] : [];
+    const ym = Math.max(5, ...pts.map(p => Math.abs(p[1]))) * 1.1;
+    lineChart($('#viPlot'), { series, xmin: 0, xmax: 20, ymin: -ym, ymax: ym, hlines: hl, cursor: tNow, xlab: 'time t (s)', ylab: 'x (mm)', xname: 't', fmtX: v => (+v).toFixed(1) + ' s', fmtTip: v => (+v).toFixed(1) + ' mm', h: 210, aria: 'Displacement over time' });
+  }
+  function drawFR() {
+    const rs = []; for (let r = 0; r <= 3; r += 0.01) rs.push(r);
+    const curve = z => rs.map(r => [r, Math.min(12, 1 / Math.sqrt((1 - r * r) ** 2 + (2 * z * r) ** 2))]);
+    const series = [0.05, 0.1, 0.25, 0.5, 1].map(z => ({ name: '', color: 'var(--muted)', opacity: .35, width: 1.2, pts: curve(z) }));
+    series.push({ name: 'ζ = ' + info.zeta.toFixed(2), color: 'var(--me)', width: 2.5, pts: curve(Math.max(info.zeta, 0.001)) });
+    lineChart($('#viFR'), { series, xmin: 0, xmax: 3, ymin: 0, ymax: 12, marks: P.F0 > 0 && info.r <= 3 ? [[info.r, Math.min(12, info.M), 'var(--ochre)', 6]] : [], xticks: [0, 1, 2, 3], xlab: 'r = ω/ωₙ', ylab: 'X / (F₀/k)', xname: 'r', fmtTip: v => (+v).toFixed(2) + '×', h: 230, w: 360, aria: 'Frequency response' });
+  }
+  function drawAnim() {
+    const i = Math.min(sim.length - 1, Math.round(tNow / 0.004)), x = sim[i][1];
+    const scale = 260 / Math.max(0.05, Math.max(...sim.map(q => Math.abs(q[1])))) * 0.35;
+    const Wd = 360, Hd = 230, wallX = 20, rest = 200, mx = rest + x * scale, my = 110;
+    let s = '<svg viewBox="0 0 ' + Wd + ' ' + Hd + '" role="img" aria-label="Mass on spring and damper">';
+    s += '<rect x="4" y="30" width="16" height="170" style="fill:var(--muted)"/>';
+    const n = 10, sx0 = wallX, sx1 = mx - 30, sy = my - 22; let d = 'M' + sx0 + ' ' + sy; for (let k = 1; k < n; k++) d += ' L' + (sx0 + (sx1 - sx0) * k / n) + ' ' + (sy + (k % 2 ? -10 : 10)); d += ' L' + sx1 + ' ' + sy;
+    s += '<path class="spring" d="' + d + '"/>';
+    const dy = my + 24; s += '<line x1="' + wallX + '" y1="' + dy + '" x2="' + (wallX + 60) + '" y2="' + dy + '" style="stroke:var(--ink);stroke-width:2.5"/><rect x="' + (wallX + 60) + '" y="' + (dy - 10) + '" width="44" height="20" style="fill:none;stroke:var(--ink);stroke-width:2.5"/><line x1="' + (mx - 70) + '" y1="' + dy + '" x2="' + (mx - 30) + '" y2="' + dy + '" style="stroke:var(--ink);stroke-width:2.5"/><line x1="' + (mx - 70) + '" y1="' + (dy - 8) + '" x2="' + (mx - 70) + '" y2="' + (dy + 8) + '" style="stroke:var(--ink);stroke-width:3"/>';
+    s += '<rect class="massb" x="' + (mx - 30) + '" y="' + (my - 40) + '" width="60" height="80" rx="6"/><text class="sg" x="' + mx + '" y="' + (my + 5) + '">m</text>';
+    s += '<line x1="' + rest + '" y1="' + (my + 52) + '" x2="' + rest + '" y2="' + (my + 66) + '" style="stroke:var(--muted);stroke-width:2"/><text class="lbls" x="' + (rest - 22) + '" y="' + (my + 80) + '">x = 0</text>';
+    if (P.F0 > 0) { const f = P.F0 * Math.cos(P.w * tNow), len = 40 * f / Math.max(P.F0, 0.01); s += '<line x1="' + (mx + 30) + '" y1="' + my + '" x2="' + (mx + 30 + Math.max(0, len) + 4) + '" y2="' + my + '" style="stroke:var(--ochre);stroke-width:4"/><text class="lbls" x="' + (mx + 34) + '" y="' + (my - 8) + '">F</text>'; }
+    s += '<text class="lbls" x="30" y="20">t = ' + tNow.toFixed(2) + ' s · x = ' + (x * 1000).toFixed(1) + ' mm</text>';
+    $('#viAnim').innerHTML = s + '</svg>';
+  }
+  function loop(ts) { if (!playing) return; if (last != null) { tNow += Math.min(0.05, (ts - last) / 1000); if (tNow > 20) tNow = 0; drawAnim(); if (Math.round(tNow * 10) % 3 === 0) drawPlot(); } last = ts; raf = requestAnimationFrame(loop); }
+  const play = on => { playing = on; last = null; $('#viPlay').textContent = on ? 'Pause' : 'Play'; cancelAnimationFrame(raf); if (on) raf = requestAnimationFrame(loop); };
+  stoppers.vibration = () => play(false);
+  $('#viPlay').onclick = () => play(!playing);
+  seg('#viCase', v => { const c = CASES[v]; Object.keys(c).forEach(k => sl.set(k, c[k])); P = Object.assign({ v0: 0 }, sl.read()); recompute(); });
+  P = Object.assign({ v0: 0 }, sl.read()); recompute(); play(playing);
+  quizList('#viQs', () => {
+    const m = rnd(1, 8) / 2, k = rnd(4, 40) * 10, wn = Math.sqrt(k / m), cc = 2 * Math.sqrt(k * m), c = +(cc * [0.1, 0.5, 1, 2][rnd(0, 3)]).toFixed(1), z = c / cc;
+    return [
+      { numeric: true, text: 'm = ' + m + ' kg, k = ' + k + ' N/m. What is the natural frequency ωₙ in rad/s? (2 decimals)', ans: +wn.toFixed(2), tol: 0.02, hint: 'ωₙ = √(k/m).', why: '√(' + k + ' / ' + m + ') = ' + wn.toFixed(2) + ' rad/s.' },
+      { text: 'Same system with c = ' + c + ' N·s/m. How is it damped?', opts: [{ label: 'Underdamped (ζ < 1)', val: 'u' }, { label: 'Critically damped (ζ = 1)', val: 'c' }, { label: 'Overdamped (ζ > 1)', val: 'o' }], ans: Math.abs(z - 1) < 0.02 ? 'c' : z < 1 ? 'u' : 'o', hint: 'c_critical = 2√(km) = ' + cc.toFixed(1) + '. Compare c with it.', why: 'ζ = c / c_cr = ' + c + ' / ' + cc.toFixed(1) + ' = ' + z.toFixed(2) + '.' },
+      { text: 'A lightly damped system (ζ = 0.05) is forced at r = 1. Roughly how large is the steady amplitude compared with the static deflection F₀/k?', opts: [{ label: 'About 10×', val: 10 }, { label: 'About 2×', val: 2 }, { label: 'About the same', val: 1 }, { label: 'Infinite', val: 0 }], ans: 10, hint: 'At r = 1 the magnification is 1/(2ζ).', why: '1 / (2 × 0.05) = 10. Only with zero damping would it grow without bound.' },
+      { text: 'To return to rest as fast as possible without overshooting, which damping ratio do you choose?', opts: [{ label: 'ζ = 1', val: 1 }, { label: 'ζ = 0.1', val: 2 }, { label: 'ζ = 3', val: 3 }], ans: 1, hint: 'Less damping overshoots; more damping creeps.', why: 'Critical damping is the boundary: the fastest return that never crosses zero.' }
+    ];
+  });
+};
+
+/* ================= LAB: inventory ================= */
+inits.inventory = function () {
+  let I, th, Q, s, seed = 7, simR = null;
+  const s1 = sliders('#ivSl1', [
+    { id: 'ivMu', key: 'mu', label: 'Mean demand/day', min: 5, max: 100, step: 1, value: 40 }, { id: 'ivSg', key: 'sigma', label: 'Std dev/day', min: 0, max: 40, step: 1, value: 12 },
+    { id: 'ivL', key: 'L', label: 'Lead time (days)', min: 1, max: 20, step: 1, value: 5 }
+  ], () => update(true));
+  const s2 = sliders('#ivSl2', [
+    { id: 'ivS', key: 'S', label: 'Cost/order ($)', min: 10, max: 500, step: 5, value: 120 }, { id: 'ivH', key: 'h', label: 'Holding $/unit/yr', min: 1, max: 30, step: 0.5, value: 6 },
+    { id: 'ivP', key: 'p', label: 'Shortage $/unit', min: 0, max: 60, step: 1, value: 15 }
+  ], () => update(true));
+  function params() { return Object.assign({}, s1.read(), s2.read(), { z: +$('#ivZ').value }); }
+  function update(resetPolicy) {
+    I = params(); th = invTheory(I);
+    const u = $('#ivU').checked ? (I.mu * I.mu + I.sigma * I.sigma) / (2 * I.mu) : 0;
+    if (resetPolicy || Q == null) { Q = Math.max(1, Math.round(th.EOQ)); s = Math.round(th.ROP + u); }
+    simR = invSim(I, Q, s, 365, seed);
+    pl.reset(); pl.end();
+  }
+  function draw(day) {
+    const S = simR.series.slice(0, day + 1);
+    const pts = S.map(d => [d.t, d.onHand]), back = S.map(d => [d.t, -d.back]);
+    const ymax = Math.max(s + Q, ...simR.series.map(d => d.onHand)) * 1.08, ymin = -Math.max(10, ...simR.series.map(d => d.back)) * 1.2;
+    const marks = S.filter(d => d.placed).map(d => [d.t, s, 'var(--ochre)', 3.5]);
+    lineChart($('#ivPlot'), { series: [{ name: 'on hand', color: 'var(--s1)', area: true, pts }, { name: 'backorders', color: 'var(--bad)', pts: back }], xmin: 0, xmax: 364, ymin, ymax, hlines: [{ y: s, color: 'var(--mis)', label: 's = ' + s }], marks, cursor: day, xlab: 'day', ylab: 'units', xname: 'day', fmtX: v => Math.round(v), fmtTip: v => Math.round(v) + ' units', h: 250, endLabels: false, aria: 'Inventory over one year' });
+    // KPIs so far (full-year for service figures)
+    const sum = S.reduce((a, d) => a + d.onHand, 0) / S.length, csl = simR.csl, target = { '1': 0.841, '1.28': 0.9, '1.65': 0.951, '2.33': 0.99 }[String(I.z)] || 0.95;
+    $('#ivCount').innerHTML = C('EOQ', Math.round(th.EOQ)) + C('Safety stock', Math.round(th.SS)) + C('ROP (theory)', Math.round(th.ROP)) + C('Your Q / s', Q + ' / ' + s) + C('Orders in year', simR.orders) + C('Avg on hand', Math.round(sum)) +
+      C('Cycle service', (csl * 100).toFixed(1) + '%', csl + 0.02 >= target ? 'good' : 'bad') + C('Fill rate', (simR.fill * 100).toFixed(1) + '%') + C('Year cost ($)', fmt(simR.total, 0));
+    $('#ivNote').innerHTML = csl + 0.02 < target ? '<b>Below target.</b> Cycle service ' + (csl * 100).toFixed(0) + '% vs ' + (target * 100).toFixed(0) + '% promised. With daily review, stock is already below s when the order goes out (undershoot, about ' + Math.round((I.mu * I.mu + I.sigma * I.sigma) / (2 * I.mu)) + ' units here), so part of the safety stock is used up. Tick "correct for daily review" to raise s by that amount.'
+      : '<b>On target.</b> Costs this year: ordering $' + fmt(simR.cost.order, 0) + ', holding $' + fmt(simR.cost.hold, 0) + ', shortage $' + fmt(simR.cost.short, 0) + '. Try a longer lead time or more demand noise and see the safety stock grow with σ·√L.';
+    // TC curve
+    const qs = []; for (let q = Math.max(1, th.EOQ * 0.2); q <= th.EOQ * 3; q += th.EOQ / 60) qs.push(q);
+    lineChart($('#ivTC'), { series: [{ name: 'ordering', color: 'var(--s2)', pts: qs.map(q => [q, th.D * I.S / q]) }, { name: 'holding', color: 'var(--s3)', pts: qs.map(q => [q, I.h * (q / 2 + th.SS)]) }, { name: 'total', color: 'var(--mis)', width: 3, pts: qs.map(q => [q, th.TC(q)]) }], ymin: 0, ymax: th.TC(th.EOQ) * 2.4, marks: [[th.EOQ, th.TC(th.EOQ), 'var(--mis)', 6], [Q, th.TC(Q), 'var(--ochre)', 5]], endLabels: true, xlab: 'order quantity Q', ylab: '$ / year', xname: 'Q', fmtX: v => Math.round(v), fmtTip: v => '$' + Math.round(v).toLocaleString('en-US'), h: 220, w: 420, aria: 'Annual cost versus order quantity' });
+  }
+  const pl = player('#ivCtl', () => 365, draw, 40);
+  stoppers.inventory = pl.stop;
+  $('#ivZ').onchange = () => update(true); $('#ivU').onchange = () => update(true);
+  $('#ivReset').onclick = () => update(true); $('#ivSeed').onclick = () => { seed = rnd(1, 99999); update(false); };
+  update(true);
+  quizList('#ivQs', () => {
+    const D = rnd(20, 120) * 100, S = rnd(5, 40) * 10, H = rnd(4, 20), eoq = Math.sqrt(2 * D * S / H), mu = rnd(10, 60), sg = rnd(4, 20), L = [4, 9, 16][rnd(0, 2)];
+    return [
+      { numeric: true, text: 'Annual demand D = ' + D.toLocaleString('en-US') + ' units, order cost S = $' + S + ', holding H = $' + H + ' per unit per year. What is the EOQ? (nearest unit)', ans: Math.round(eoq), tol: 1, hint: 'EOQ = √(2DS/H).', why: '√(2 × ' + D + ' × ' + S + ' / ' + H + ') ≈ ' + Math.round(eoq) + ' units.' },
+      { numeric: true, text: 'Daily demand has σ = ' + sg + ', lead time ' + L + ' days, target z = 1.65. What is the safety stock? (nearest unit)', ans: Math.round(1.65 * sg * Math.sqrt(L)), tol: 1, hint: 'SS = z · σ · √L.', why: '1.65 × ' + sg + ' × √' + L + ' = ' + (1.65 * sg * Math.sqrt(L)).toFixed(1) + '.' },
+      { text: 'Lead time doubles from 4 to 8 days. What happens to the safety stock (same σ, same z)?', opts: [{ label: 'It grows by about 41% (×√2)', val: 1 }, { label: 'It doubles', val: 2 }, { label: 'It stays the same', val: 3 }], ans: 1, hint: 'Uncertainty adds up as variance, so the std dev grows with the square root of time.', why: 'σ·√8 / σ·√4 = √2 ≈ 1.41.' },
+      { text: 'The simulation reports 80% cycle service although s was set for 95%. Most likely reason?', opts: [{ label: 'Daily review: stock is already below s when the order goes out', val: 1 }, { label: 'EOQ is too large', val: 2 }, { label: 'Holding cost is too high', val: 3 }], ans: 1, hint: 'Look at how far below s the inventory is on the day an order is placed.', why: 'The formula assumes you reorder exactly at s. With daily review the stock is already past s by about (μ² + σ²)/(2μ) on average, eating into the safety stock.' }
+    ];
+  });
+};
+
+/* ================= LAB: bullwhip ================= */
+inits.bullwhip = function () {
+  const NAMES = ['Retailer', 'Wholesaler', 'Distributor', 'Factory'], COL = ['var(--s1)', 'var(--s2)', 'var(--s3)', 'var(--s4)'];
+  let B, R, seed = 5;
+  const sl = sliders('#bwSl1', [
+    { id: 'bwL', key: 'L', label: 'Lead time (wk)', min: 1, max: 4, step: 1, value: 2 }, { id: 'bwN', key: 'N', label: 'Forecast window', min: 2, max: 10, step: 1, value: 4 },
+    { id: 'bwNo', key: 'noise', label: 'Demand noise σ', min: 0, max: 4, step: 0.5, value: 2 }, { id: 'bwSt', key: 'step', label: 'Demand jump at wk 10', min: 0, max: 8, step: 1, value: 4 }
+  ], () => update());
+  function update() {
+    const v = sl.read(); B = Object.assign({ T: 52, base: 8, stepAt: 10, seed, warm: 6, share: $('#bwShare').checked }, v);
+    R = bullwhip(B); const Ralt = bullwhip(Object.assign({}, B, { share: !B.share }));
+    const th = B.share ? R.theory.central : R.theory.decentral, mx = Math.max(...R.ratio, ...th, ...Ralt.ratio) * 1.12;
+    const Wd = 420, Hd = 200, l = 92, bh = 30;
+    let s = '<svg viewBox="0 0 ' + Wd + ' ' + Hd + '" role="img" aria-label="Variance amplification by stage">';
+    R.ratio.forEach((v, k) => { const y = 14 + k * 44, w = (v / mx) * (Wd - l - 70), tw = (th[k] / mx) * (Wd - l - 70);
+      s += '<text class="lbl" x="' + (l - 8) + '" y="' + (y + bh / 2 + 4) + '" text-anchor="end">' + NAMES[k] + '</text><rect x="' + l + '" y="' + y + '" width="' + Math.max(2, w) + '" height="' + bh + '" rx="4" style="fill:' + COL[k] + '" data-tip="' + NAMES[k] + ': ×' + v.toFixed(1) + ' (other setting: ×' + Ralt.ratio[k].toFixed(1) + ')"/>' +
+        '<line x1="' + (l + tw) + '" x2="' + (l + tw) + '" y1="' + (y - 4) + '" y2="' + (y + bh + 4) + '" style="stroke:var(--ink);stroke-width:2"/><text class="lbls" x="' + (l + Math.max(w, tw, 2) + 6) + '" y="' + (y + bh / 2 + 4) + '">×' + v.toFixed(1) + '</text>'; });
+    $('#bwBars').innerHTML = s + '</svg>';
+    $('#bwCount').innerHTML = C('Factory amplification', '×' + R.ratio[3].toFixed(1), 'bad') + C(B.share ? 'Without sharing' : 'With sharing', '×' + Ralt.ratio[3].toFixed(1)) + C('Peak factory order', Math.max(...R.orders[3])) + C('Peak customer demand', Math.max(...R.cust));
+    pl.reset(); pl.end();
+  }
+  function draw(t) {
+    const series = [{ name: 'customer', color: 'var(--ink)', width: 2.5, pts: R.cust.slice(0, t + 1).map((v, i) => [i, v]) }].concat(R.orders.map((o, k) => ({ name: NAMES[k], color: COL[k], pts: o.slice(0, t + 1).map((v, i) => [i, v]) })));
+    const ymax = Math.max(...R.orders.flat(), ...R.cust) * 1.08;
+    lineChart($('#bwPlot'), { series, xmin: 0, xmax: 51, ymin: 0, ymax, cursor: t, endLabels: true, xlab: 'week', ylab: 'units ordered', xname: 'week', fmtX: v => Math.round(v), fmtTip: v => Math.round(v), h: 240, aria: 'Orders by stage over the season' });
+    $('#bwLeg').innerHTML = '<span><i style="background:var(--ink)"></i>customer demand</span>' + NAMES.map((n, k) => '<span><i style="background:' + COL[k] + '"></i>' + n + ' orders</span>').join('');
+    // chain diagram for week t
+    const Wd = 640, Hd = 150, bw = 120, gap = (Wd - 20 - 4 * bw) / 3;
+    let s = '<svg viewBox="0 0 ' + Wd + ' ' + Hd + '" role="img" aria-label="Supply chain at week ' + (t + 1) + '">';
+    s += '<text class="lbls" x="10" y="14">week ' + (t + 1) + (B.share ? ' · everyone sees point-of-sale data' : ' · each stage sees only the orders it receives') + '</text>';
+    for (let k = 0; k < 4; k++) {
+      const x = 10 + k * (bw + gap), y = 34, inv = R.inv[k][t];
+      s += '<g class="stage"><rect x="' + x + '" y="' + y + '" width="' + bw + '" height="78" rx="8" style="stroke:' + COL[k] + ';stroke-width:2.5"/><text class="lbl" x="' + (x + 10) + '" y="' + (y + 20) + '">' + NAMES[k] + '</text>' +
+        '<text class="lbls" x="' + (x + 10) + '" y="' + (y + 42) + '">orders ' + R.orders[k][t] + '</text><text class="lbls" x="' + (x + 10) + '" y="' + (y + 62) + '" style="fill:' + (inv < 0 ? 'var(--bad)' : 'var(--muted)') + '">' + (inv < 0 ? 'backlog ' + (-inv) : 'stock ' + inv) + '</text></g>';
+      if (k < 3) { const x1 = x + bw + 4, x2 = x + bw + gap - 4; s += '<path class="flowo" d="M' + x1 + ' ' + (y + 24) + ' L' + x2 + ' ' + (y + 24) + '" marker-end="url(#bwA)"/><path class="flowg" d="M' + x2 + ' ' + (y + 56) + ' L' + x1 + ' ' + (y + 56) + '" marker-end="url(#bwG)"/>'; }
+    }
+    s += '<defs><marker id="bwA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--mis)"/></marker><marker id="bwG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ochre)"/></marker></defs>';
+    s += '<text class="lbls" x="10" y="136"><tspan style="fill:var(--mis)">→ orders go upstream</tspan>   <tspan style="fill:var(--ochre)">← goods come downstream, ' + B.L + '-week lead time</tspan></text>';
+    $('#bwChain').innerHTML = s + '</svg>';
+  }
+  const pl = player('#bwCtl', () => 52, draw, 260);
+  stoppers.bullwhip = pl.stop;
+  $('#bwShare').onchange = update; $('#bwSeed').onclick = () => { seed = rnd(1, 9999); update(); };
+  update();
+  quizList('#bwQs', () => {
+    const Le = rnd(1, 3) + 1, N = rnd(2, 8), f1 = 1 + 2 * Le / N + 2 * Le * Le / (N * N);
+    return [
+      { text: 'Without information sharing, which stage\'s orders swing the most?', opts: NAMES.map(n => ({ label: n, val: n })), ans: 'Factory', hint: 'Each stage forecasts from the already amplified orders of the stage below.', why: 'Amplification compounds stage by stage, so the factory, farthest from the customer, sees the wildest orders.' },
+      { numeric: true, text: 'One stage, moving-average forecast over N = ' + N + ' weeks, L = ' + Le + ' (lead time + review). What is the lower bound on Var(q)/Var(D)? (2 decimals)', ans: +f1.toFixed(2), tol: 0.02, hint: '1 + 2L/N + 2L²/N².', why: '1 + 2·' + Le + '/' + N + ' + 2·' + Le + '²/' + N + '² = ' + f1.toFixed(2) + '.' },
+      { text: 'Every stage starts forecasting from the retailer\'s point-of-sale data. What happens to the factory\'s amplification?', opts: [{ label: 'It drops a lot but stays above 1', val: 1 }, { label: 'It disappears completely', val: 2 }, { label: 'It does not change', val: 3 }], ans: 1, hint: 'With shared data the lead times add instead of the factors multiplying.', why: 'Sharing turns a product of stage factors into one factor with summed lead times: much smaller, but each stage still forecasts and orders over its lead time.' },
+      { text: 'Which change reduces the bullwhip effect, with no sharing?', opts: [{ label: 'Longer forecast window N', val: 1 }, { label: 'Longer lead time L', val: 2 }, { label: 'Adding a fifth stage', val: 3 }], ans: 1, hint: 'Look at the formula: where does N appear?', why: 'A longer moving average reacts less to noise, so 2L/N and 2L²/N² shrink.' }
+    ];
+  });
+};
+
+route();
+})();
+</script>
+
+</html>
