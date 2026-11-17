@@ -1,0 +1,27 @@
+# repo-mirror: files matching these patterns live in the mirror folder, not in git.
+# target: drive (My Drive/Projects) or kfupm (OneDrive-KFUPM/Projects)
+target: drive
+folder: ladder-pages
+
+# One pattern per line: *.pdf matches anywhere, out/ is a whole folder,
+# reports/*.html is a path pattern.
+*.pdf
+*.ppt
+*.pptx
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.odt
+*.odp
+*.ods
+*.pages
+*.numbers
+*.mp4
+*.mov
+*.m4a
+*.mp3
+*.wav
+*.zip
+*.psd
+*.ai

@@ -1,0 +1,22 @@
+# >>> repo-mirror (documents live in the mirror folder; edit .mirror, not this block)
+*.pdf
+*.ppt
+*.pptx
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.odt
+*.odp
+*.ods
+*.pages
+*.numbers
+*.mp4
+*.mov
+*.m4a
+*.mp3
+*.wav
+*.zip
+*.psd
+*.ai
+# <<< repo-mirror
